@@ -9,6 +9,9 @@
 # Environment
 .env
 
-# Database
-test.db
+# Compiled Python files
+*.pyc
+*.pyo
+__pycache__/
+
 
