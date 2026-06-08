@@ -6,8 +6,9 @@
 # PDF generado (es regenerable; descomentar si NO querés versionarlo)
 # activia-trace-documentacion.pdf
 
-# OS / IDE
-Thumbs.db
-.DS_Store
-.vscode/
-.idea/
+# Environment
+.env
+
+# Database
+test.db
+
