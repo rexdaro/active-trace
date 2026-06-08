@@ -6,8 +6,12 @@
 # PDF generado (es regenerable; descomentar si NO querés versionarlo)
 # activia-trace-documentacion.pdf
 
+# Registry
+.atl/
+
 # Environment
 .env
+
 
 # Compiled Python files
 *.pyc

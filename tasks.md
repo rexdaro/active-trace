@@ -1,0 +1,1 @@
+- [x] Resolve Alembic automatic migration generation database connection error

@@ -1,12 +1,19 @@
 from fastapi import FastAPI
 from app.routers.health import router as health_router
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from app.routers.auth import router as auth_router
+
+try:
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+except ImportError:
+    FastAPIInstrumentor = None
 
 app = FastAPI()
 
 app.include_router(health_router, prefix="/health", tags=["health"])
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
 
-FastAPIInstrumentor.instrument_app(app)
+if FastAPIInstrumentor:
+    FastAPIInstrumentor.instrument_app(app)
 
 @app.get("/")
 async def root():
