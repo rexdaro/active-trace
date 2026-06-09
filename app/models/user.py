@@ -4,6 +4,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Boolean
 from app.models.base import Base, TimestampMixin, TenantMixin
 from app.models.token import RefreshToken
+from app.models.user_role import UserRole
 
 class User(Base, TimestampMixin, TenantMixin):
     __tablename__ = "users"
@@ -16,3 +17,4 @@ class User(Base, TimestampMixin, TenantMixin):
     totp_secret: Mapped[str | None] = mapped_column(String, nullable=True)
     
     refresh_tokens: Mapped[List["RefreshToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    user_roles: Mapped[List["UserRole"]] = relationship(back_populates="user")

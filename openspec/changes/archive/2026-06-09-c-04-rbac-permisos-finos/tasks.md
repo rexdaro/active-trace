@@ -1,0 +1,5 @@
+- [x] Create Role, Permission, RolePermission models.
+- [x] Seed base roles (ALUMNO, TUTOR, PROFESOR, etc.).
+- [ ] Implement RBAC resolution logic (dependency/guard).
+- [x] Update Alembic migrations.
+- [x] Write tests for RBAC.
