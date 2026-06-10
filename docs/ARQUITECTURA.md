@@ -102,6 +102,7 @@ REQUEST
 - Máximo **500 LOC por archivo** backend.
 - Manejo de errores estandarizado:
 
+```markdown
   | Tipo | Respuesta |
   |------|-----------|
   | Validación | `HTTPException 400` |
@@ -110,7 +111,7 @@ REQUEST
   | No encontrado | `HTTPException 404` |
   | Error de integración externa | `HTTPException 502` + retry |
   | Interno | `HTTPException 500` + log detallado |
-
+```
 ---
 
 ## 4. Estructura de directorios
