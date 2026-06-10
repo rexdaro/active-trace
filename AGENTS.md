@@ -114,6 +114,7 @@ Estas reglas son **contrato**. Romperlas es un defecto, no una decisión de esti
 5. **Pydantic schemas con `extra='forbid'`.** Todo schema rechaza campos no declarados (`model_config = ConfigDict(extra='forbid')`).
 6. **snake_case en Python.** Funciones, variables, columnas de BD, módulos y paquetes.
 7. **PascalCase en componentes React.** Nombre del componente y del archivo (`ProductCard.tsx`). Sin `any`, sin class components.
+17. Al terminar CUALQUIER change, es OBLIGATORIO actualizar el CHANGES.md.
 
 ### Seguridad y arquitectura (fundacionales — fallan en code review)
 8. **Identidad SIEMPRE desde la sesión** (JWT verificado). JAMÁS desde un parámetro de URL, body, header ni cualquier dato de la petición. Esto define quién es el usuario, sus roles y su tenant. Sin excepciones.
