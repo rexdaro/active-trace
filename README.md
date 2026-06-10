@@ -222,6 +222,4 @@ La documentación técnica está en `docs/ARQUITECTURA.md`.
 
 ---
 
-## Licencia
 
-Privado. Todos los derechos reservados.
