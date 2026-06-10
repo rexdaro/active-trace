@@ -1,10 +1,13 @@
 import uuid
 from typing import List
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Boolean
+from sqlalchemy import String, Boolean, UniqueConstraint
+from sqlalchemy.ext.hybrid import hybrid_property
 from app.models.base import Base, TimestampMixin, TenantMixin
 from app.models.token import RefreshToken
 from app.models.user_role import UserRole
+import os
+from app.core.security import encrypt, decrypt
 
 class User(Base, TimestampMixin, TenantMixin):
     __tablename__ = "users"
@@ -18,3 +21,46 @@ class User(Base, TimestampMixin, TenantMixin):
     
     refresh_tokens: Mapped[List["RefreshToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     user_roles: Mapped[List["UserRole"]] = relationship(back_populates="user")
+
+class Usuario(Base, TimestampMixin, TenantMixin):
+    __tablename__ = "usuarios"
+    __table_args__ = (UniqueConstraint('tenant_id', 'email', name='uix_tenant_email'),)
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    
+    _email: Mapped[str] = mapped_column("email", String, nullable=False)
+    _dni: Mapped[str] = mapped_column("dni", String, nullable=False)
+    _cuil: Mapped[str] = mapped_column("cuil", String, nullable=False)
+    _cbu: Mapped[str] = mapped_column("cbu", String, nullable=False)
+
+    @hybrid_property
+    def email(self):
+        return decrypt(self._email, os.environ.get("ENCRYPTION_KEY", "dev-key"))
+    
+    @email.setter
+    def email(self, value):
+        self._email = encrypt(value, os.environ.get("ENCRYPTION_KEY", "dev-key"))
+
+    @hybrid_property
+    def dni(self):
+        return decrypt(self._dni, os.environ.get("ENCRYPTION_KEY", "dev-key"))
+    
+    @dni.setter
+    def dni(self, value):
+        self._dni = encrypt(value, os.environ.get("ENCRYPTION_KEY", "dev-key"))
+
+    @hybrid_property
+    def cuil(self):
+        return decrypt(self._cuil, os.environ.get("ENCRYPTION_KEY", "dev-key"))
+    
+    @cuil.setter
+    def cuil(self, value):
+        self._cuil = encrypt(value, os.environ.get("ENCRYPTION_KEY", "dev-key"))
+
+    @hybrid_property
+    def cbu(self):
+        return decrypt(self._cbu, os.environ.get("ENCRYPTION_KEY", "dev-key"))
+    
+    @cbu.setter
+    def cbu(self, value):
+        self._cbu = encrypt(value, os.environ.get("ENCRYPTION_KEY", "dev-key"))
