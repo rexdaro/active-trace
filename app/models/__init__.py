@@ -5,3 +5,4 @@ from app.models.token import RefreshToken
 from app.models.rbac import Role, Permission, RolePermission
 from app.models.user_role import UserRole
 from app.models.audit import AuditLog
+from app.models.estructura import Carrera, Cohorte, Materia

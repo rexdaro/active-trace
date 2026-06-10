@@ -219,7 +219,7 @@ C-01 → C-02 → C-03 → C-04 → C-06 → C-07 → C-09 → C-10 → C-11 →
 ## FASE 2 — Entidades Raíz del Dominio Académico
 
 ### [C-06] `estructura-academica`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` hecho
 - **Scope**:
   - Modelos: `Carrera`, `Cohorte`, `Materia` (catálogo único por tenant — ADR-006).
   - ABM `/api/admin/carreras`, `/api/admin/cohortes`, `/api/admin/materias` con guard `estructura:gestionar` (ADMIN).
@@ -470,7 +470,7 @@ C-01 → C-02 → C-03 → C-04 → C-06 → C-07 → C-09 → C-10 → C-11 →
 > `C-21` es el shell común. Las features (C-22/23/24) consumen los endpoints ya construidos en backend.
 
 ### [C-21] `frontend-shell-y-auth`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` hecho
 - **Scope**:
   - Scaffolding React 18 + TypeScript + Vite. Estructura feature-based. Tailwind, TanStack Query, React Hook Form + Zod, Axios.
   - Cliente HTTP centralizado: interceptor de auth + **refresh transparente** de tokens. Manejo de 401/403.
