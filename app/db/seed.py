@@ -11,6 +11,10 @@ PERMISSIONS = {
     "atrasados:export": ["PROFESOR", "COORDINADOR", "ADMIN"],
     "comunicacion:enviar": ["PROFESOR", "COORDINADOR", "ADMIN"],
     "comunicacion:aprobar": ["COORDINADOR", "ADMIN"],
+    "encuentros:gestionar": ["PROFESOR", "COORDINADOR", "ADMIN"],
+    "encuentros:ver": ["COORDINADOR", "ADMIN"],
+    "guardias:registrar": ["TUTOR", "COORDINADOR", "ADMIN"],
+    "guardias:ver": ["COORDINADOR", "ADMIN"],
 }
 
 

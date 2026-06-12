@@ -13,3 +13,5 @@ from app.models.padron import VersionPadron, EntradaPadron
 from app.models.calificacion import Calificacion, CalificacionOrigen
 from app.models.umbral_materia import UmbralMateria
 from app.models.comunicacion import Comunicacion, ComunicacionEstado
+from app.models.encuentro import SlotEncuentro, InstanciaEncuentro, EstadoInstancia
+from app.models.guardia import Guardia, EstadoGuardia
