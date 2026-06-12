@@ -4,7 +4,7 @@ from datetime import datetime
 
 class AsignacionBase(BaseModel):
     user_id: uuid.UUID
-    role_id: uuid.UUID
+    role_id: int
     contexto_id: uuid.UUID
     responsable_id: uuid.UUID | None = None
     desde: datetime

@@ -8,7 +8,6 @@ ROLES = ["ALUMNO", "TUTOR", "PROFESOR", "COORDINADOR", "NEXO", "ADMIN", "FINANZA
 async def seed():
     async with AsyncSessionLocal() as session:
         for role_name in ROLES:
-            # Check if role exists
             result = await session.execute(select(Role).filter(Role.name == role_name))
             role = result.scalar_one_or_none()
             if not role:
