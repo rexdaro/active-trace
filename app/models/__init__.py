@@ -17,3 +17,4 @@ from app.models.encuentro import SlotEncuentro, InstanciaEncuentro, EstadoInstan
 from app.models.guardia import Guardia, EstadoGuardia
 from app.models.coloquio import Evaluacion, ReservaEvaluacion, ResultadoEvaluacion, TipoEvaluacion, EstadoReserva
 from app.models.aviso import Aviso, AcknowledgmentAviso, AlcanceAviso, SeveridadAviso
+from app.models.tarea import Tarea, ComentarioTarea, EstadoTarea

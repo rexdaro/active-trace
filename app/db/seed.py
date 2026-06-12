@@ -21,6 +21,9 @@ PERMISSIONS = {
     "avisos:publicar": ["COORDINADOR", "ADMIN"],
     "avisos:ver": ["ALUMNO", "TUTOR", "PROFESOR", "COORDINADOR", "NEXO", "ADMIN", "FINANZAS"],
     "avisos:confirmar": ["ALUMNO", "TUTOR", "PROFESOR", "COORDINADOR", "ADMIN", "FINANZAS"],
+    "tareas:crear": ["PROFESOR", "COORDINADOR"],
+    "tareas:ver": ["TUTOR", "PROFESOR", "COORDINADOR"],
+    "tareas:gestionar": ["COORDINADOR", "ADMIN"],
 }
 
 
