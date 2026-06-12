@@ -1,1 +1,4 @@
 - [x] Resolve Alembic automatic migration generation database connection error
+- [x] Implement AuditLog append-only enforcement (Listener)
+- [x] Implement AuditLog middleware to capture impersonation
+- [x] Update AuditLog service for impersonation tracking

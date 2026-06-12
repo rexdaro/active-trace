@@ -1,5 +1,5 @@
 from sqlalchemy import ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from app.models.base import Base, TimestampMixin
 
 class RolePermission(Base, TimestampMixin):
@@ -17,6 +17,7 @@ class Role(Base, TimestampMixin):
     
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    description: Mapped[str | None] = mapped_column(String(255), nullable=True)
     
     role_permissions: Mapped[list["RolePermission"]] = relationship(
         back_populates="role"
@@ -29,6 +30,12 @@ class Permission(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     
+    @validates("name")
+    def validate_name(self, key, name):
+        if ":" not in name:
+            raise ValueError("Invalid permission format. Expected modulo:accion")
+        return name
+
     role_permissions: Mapped[list["RolePermission"]] = relationship(
         back_populates="permission"
     )

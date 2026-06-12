@@ -12,6 +12,8 @@
 # Environment
 .env
 
+# Test database (SQLite, regenerable)
+test.db
 
 # Compiled Python files
 *.pyc

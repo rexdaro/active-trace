@@ -1,6 +1,7 @@
 import uuid
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, JSON, Integer
+from sqlalchemy import String, JSON, Integer, event
+from sqlalchemy.exc import InvalidRequestError
 from app.models.base import Base, TimestampMixin
 
 class AuditLog(Base, TimestampMixin):
@@ -18,3 +19,11 @@ class AuditLog(Base, TimestampMixin):
     filas_afectadas: Mapped[int] = mapped_column(Integer, nullable=False)
     ip: Mapped[str] = mapped_column(String, nullable=True)
     user_agent: Mapped[str] = mapped_column(String, nullable=True)
+
+@event.listens_for(AuditLog, 'before_update')
+def prevent_update(mapper, connection, target):
+    raise InvalidRequestError("AuditLog entries are append-only and cannot be updated.")
+
+@event.listens_for(AuditLog, 'before_delete')
+def prevent_delete(mapper, connection, target):
+    raise InvalidRequestError("AuditLog entries are append-only and cannot be deleted.")

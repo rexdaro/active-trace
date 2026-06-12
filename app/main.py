@@ -3,6 +3,9 @@ from app.routers.health import router as health_router
 from app.routers.auth import router as auth_router
 from app.routers.admin import router as admin_router
 from app.routers.asignaciones import router as asignaciones_router
+from app.routers.carreras import router as carreras_router
+from app.routers.cohortes import router as cohortes_router
+from app.routers.materias import router as materias_router
 from app.middleware.audit import AuditLogMiddleware
 
 try:
@@ -17,6 +20,9 @@ app.include_router(health_router, prefix="/health", tags=["health"])
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(admin_router)
 app.include_router(asignaciones_router)
+app.include_router(carreras_router, prefix="/api/carreras")
+app.include_router(cohortes_router, prefix="/api/cohortes")
+app.include_router(materias_router, prefix="/api/materias")
 
 if FastAPIInstrumentor:
     FastAPIInstrumentor.instrument_app(app)

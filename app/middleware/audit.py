@@ -1,9 +1,7 @@
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from app.services.audit import AuditService
-from sqlalchemy.ext.asyncio import AsyncSession
-# Need a way to get the session here. For now, this is a placeholder.
-# In a real app, this would be injected via a dependency or a specific scoped session.
+from app.core.database import AsyncSessionLocal
 
 class AuditLogMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -14,8 +12,18 @@ class AuditLogMiddleware(BaseHTTPMiddleware):
         # Process the request
         response = await call_next(request)
         
-        # Log action (This requires a DB session)
-        # TODO: Implement database session retrieval here.
-        # For now, we simulate the call.
+        # Log action
+        async with AsyncSessionLocal() as db:
+            await AuditService.log_action(
+                db=db,
+                action=request.method + " " + request.url.path,
+                user_id=user_id,
+                resource=request.url.path,
+                status=str(response.status_code),
+                actor_id=user_id,
+                impersonator_id=impersonator_id,
+                detalle={"headers": dict(request.headers)},
+                filas_afectadas=0
+            )
         
         return response
