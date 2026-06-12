@@ -16,3 +16,4 @@ from app.models.comunicacion import Comunicacion, ComunicacionEstado
 from app.models.encuentro import SlotEncuentro, InstanciaEncuentro, EstadoInstancia
 from app.models.guardia import Guardia, EstadoGuardia
 from app.models.coloquio import Evaluacion, ReservaEvaluacion, ResultadoEvaluacion, TipoEvaluacion, EstadoReserva
+from app.models.aviso import Aviso, AcknowledgmentAviso, AlcanceAviso, SeveridadAviso

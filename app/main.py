@@ -18,6 +18,7 @@ from app.routers.comunicaciones import router as comunicaciones_router
 from app.routers.encuentros import router as encuentros_router
 from app.routers.guardias import router as guardias_router
 from app.routers.coloquios import router as coloquios_router
+from app.routers.avisos import router as avisos_router
 from app.middleware.audit import AuditLogMiddleware
 from app.workers.comunicaciones import start_worker
 
@@ -56,6 +57,7 @@ app.include_router(comunicaciones_router)
 app.include_router(encuentros_router)
 app.include_router(guardias_router)
 app.include_router(coloquios_router)
+app.include_router(avisos_router)
 
 if FastAPIInstrumentor:
     FastAPIInstrumentor.instrument_app(app)
