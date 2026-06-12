@@ -15,3 +15,4 @@ from app.models.umbral_materia import UmbralMateria
 from app.models.comunicacion import Comunicacion, ComunicacionEstado
 from app.models.encuentro import SlotEncuentro, InstanciaEncuentro, EstadoInstancia
 from app.models.guardia import Guardia, EstadoGuardia
+from app.models.coloquio import Evaluacion, ReservaEvaluacion, ResultadoEvaluacion, TipoEvaluacion, EstadoReserva

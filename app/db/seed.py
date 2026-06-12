@@ -15,6 +15,9 @@ PERMISSIONS = {
     "encuentros:ver": ["COORDINADOR", "ADMIN"],
     "guardias:registrar": ["TUTOR", "COORDINADOR", "ADMIN"],
     "guardias:ver": ["COORDINADOR", "ADMIN"],
+    "coloquios:gestionar": ["COORDINADOR", "ADMIN"],
+    "coloquios:reservar": ["ALUMNO"],
+    "coloquios:ver": ["COORDINADOR", "ADMIN", "PROFESOR"],
 }
 
 
