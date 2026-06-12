@@ -1,4 +1,8 @@
+import asyncio
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
+
 from app.routers.health import router as health_router
 from app.routers.auth import router as auth_router
 from app.routers.admin import router as admin_router
@@ -10,14 +14,28 @@ from app.routers.equipos import router as equipos_router
 from app.routers.padron import router as padron_router
 from app.routers.calificaciones import router as calificaciones_router
 from app.routers.analisis import router as analisis_router
+from app.routers.comunicaciones import router as comunicaciones_router
 from app.middleware.audit import AuditLogMiddleware
+from app.workers.comunicaciones import start_worker
 
 try:
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 except ImportError:
     FastAPIInstrumentor = None
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    worker_task = start_worker(app)
+    yield
+    worker_task.cancel()
+    try:
+        await worker_task
+    except asyncio.CancelledError:
+        pass
+
+
+app = FastAPI(lifespan=lifespan)
 app.add_middleware(AuditLogMiddleware)
 
 app.include_router(health_router, prefix="/health", tags=["health"])
@@ -31,6 +49,7 @@ app.include_router(equipos_router)
 app.include_router(padron_router)
 app.include_router(calificaciones_router)
 app.include_router(analisis_router)
+app.include_router(comunicaciones_router)
 
 if FastAPIInstrumentor:
     FastAPIInstrumentor.instrument_app(app)

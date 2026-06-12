@@ -9,6 +9,8 @@ ROLES = ["ALUMNO", "TUTOR", "PROFESOR", "COORDINADOR", "NEXO", "ADMIN", "FINANZA
 PERMISSIONS = {
     "atrasados:ver": ["PROFESOR", "TUTOR", "COORDINADOR", "ADMIN"],
     "atrasados:export": ["PROFESOR", "COORDINADOR", "ADMIN"],
+    "comunicacion:enviar": ["PROFESOR", "COORDINADOR", "ADMIN"],
+    "comunicacion:aprobar": ["COORDINADOR", "ADMIN"],
 }
 
 
