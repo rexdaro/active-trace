@@ -1,16 +1,20 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
-from app.models.user import Usuario
+from app.core.rbac import check_permission
+from app.models.user import User, Usuario
 from app.schemas.usuario import UsuarioCreate, UsuarioRead
-import uuid
 
 router = APIRouter(prefix="/api/admin/usuarios", tags=["admin"])
 
-@router.post("/", response_model=UsuarioRead)
-async def create_usuario(usuario: UsuarioCreate, db: AsyncSession = Depends(get_db)):
+@router.post("/", response_model=UsuarioRead, dependencies=[Depends(check_permission("usuarios:gestionar"))])
+async def create_usuario(
+    usuario: UsuarioCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(check_permission("usuarios:gestionar"))
+):
     new_usuario = Usuario(
-        tenant_id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
+        tenant_id=user.tenant_id,
         email=usuario.email,
         dni=usuario.dni,
         cuil=usuario.cuil,

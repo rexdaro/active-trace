@@ -15,11 +15,11 @@ Initial project foundation setup to enable rapid development with clean architec
 
 ## Architecture Overview
 - Clean Architecture (screaming architecture):
-    - `src/core`: Domain models, abstract interfaces.
-    - `src/services`: Business logic.
-    - `src/repositories`: Data access.
-    - `src/api`: FastAPI routers, dependencies.
-    - `src/schemas`: Pydantic models.
+    - `app/core`: Domain models, abstract interfaces.
+    - `app/services`: Business logic.
+    - `app/repositories`: Data access.
+    - `app/routers`: FastAPI routers, dependencies.
+    - `app/schemas`: Pydantic models.
 
 ## Infrastructure
 - **FastAPI**: Main web framework.

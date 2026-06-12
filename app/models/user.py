@@ -31,7 +31,7 @@ class Usuario(Base, TimestampMixin, TenantMixin):
     _email: Mapped[str] = mapped_column("email", String, nullable=False)
     _dni: Mapped[str] = mapped_column("dni", String, nullable=False)
     _cuil: Mapped[str] = mapped_column("cuil", String, nullable=False)
-    _cbu: Mapped[str] = mapped_column("cbu", String, nullable=False)
+    _cbu: Mapped[str | None] = mapped_column("cbu", String, nullable=True)
 
     @hybrid_property
     def email(self):
@@ -59,8 +59,13 @@ class Usuario(Base, TimestampMixin, TenantMixin):
 
     @hybrid_property
     def cbu(self):
+        if self._cbu is None:
+            return None
         return decrypt(self._cbu, os.environ.get("ENCRYPTION_KEY", "dev-key"))
     
     @cbu.setter
     def cbu(self, value):
-        self._cbu = encrypt(value, os.environ.get("ENCRYPTION_KEY", "dev-key"))
+        if value is None:
+            self._cbu = None
+        else:
+            self._cbu = encrypt(value, os.environ.get("ENCRYPTION_KEY", "dev-key"))

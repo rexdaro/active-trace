@@ -1,11 +1,12 @@
 from pydantic import BaseModel, EmailStr
 import uuid
+from typing import Optional
 
 class UsuarioBase(BaseModel):
     email: EmailStr
     dni: str
     cuil: str
-    cbu: str
+    cbu: Optional[str] = None
 
 class UsuarioCreate(UsuarioBase):
     pass

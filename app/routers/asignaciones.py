@@ -1,16 +1,21 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
+from app.core.rbac import check_permission
+from app.models.user import User
 from app.models.asignacion import Asignacion
 from app.schemas.asignacion import AsignacionCreate, AsignacionRead
-import uuid
 
 router = APIRouter(prefix="/api/asignaciones", tags=["asignaciones"])
 
-@router.post("/", response_model=AsignacionRead)
-async def create_asignacion(asignacion: AsignacionCreate, db: AsyncSession = Depends(get_db)):
+@router.post("/", response_model=AsignacionRead, dependencies=[Depends(check_permission("equipos:asignar"))])
+async def create_asignacion(
+    asignacion: AsignacionCreate,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(check_permission("equipos:asignar"))
+):
     new_asignacion = Asignacion(
-        tenant_id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
+        tenant_id=user.tenant_id,
         **asignacion.model_dump()
     )
     db.add(new_asignacion)
