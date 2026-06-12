@@ -4,7 +4,7 @@
 
 Define el modelo versionado de alumnos por materia×cohorte y los mecanismos de ingesta (archivo manual y Moodle WS). Es la base de datos para las épicas de calificaciones, rankings y comunicaciones.
 
-## Requirements
+## ADDED Requirements
 
 ### Requirement: Versionado de Padrón
 

@@ -10,3 +10,5 @@ from app.models.carrera import Carrera
 from app.models.cohorte import Cohorte
 from app.models.materia import Materia
 from app.models.padron import VersionPadron, EntradaPadron
+from app.models.calificacion import Calificacion, CalificacionOrigen
+from app.models.umbral_materia import UmbralMateria

@@ -8,6 +8,7 @@ from app.routers.cohortes import router as cohortes_router
 from app.routers.materias import router as materias_router
 from app.routers.equipos import router as equipos_router
 from app.routers.padron import router as padron_router
+from app.routers.calificaciones import router as calificaciones_router
 from app.middleware.audit import AuditLogMiddleware
 
 try:
@@ -27,6 +28,7 @@ app.include_router(cohortes_router, prefix="/api/cohortes")
 app.include_router(materias_router, prefix="/api/materias")
 app.include_router(equipos_router)
 app.include_router(padron_router)
+app.include_router(calificaciones_router)
 
 if FastAPIInstrumentor:
     FastAPIInstrumentor.instrument_app(app)
