@@ -1,8 +1,9 @@
+from __future__ import annotations
 import uuid
 from datetime import datetime
 import enum
 from sqlalchemy import String, Boolean, Numeric, DateTime, ForeignKey, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base, TimestampMixin, TenantMixin
 
 
@@ -28,6 +29,10 @@ class Calificacion(Base, TimestampMixin, TenantMixin):
         ForeignKey("usuarios.id"), nullable=True
     )
     importado_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    entrada_padron: Mapped["EntradaPadron"] = relationship(
+        "EntradaPadron", foreign_keys=[entrada_padron_id]
+    )
 
     __table_args__ = (
         UniqueConstraint(

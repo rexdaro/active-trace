@@ -1,9 +1,12 @@
+from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import select, delete, func
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.base import BaseRepository
 from app.models.calificacion import Calificacion, CalificacionOrigen
+from app.models.padron import EntradaPadron
 
 
 class CalificacionesRepository(BaseRepository[Calificacion]):
@@ -49,6 +52,64 @@ class CalificacionesRepository(BaseRepository[Calificacion]):
         calificaciones = list(result.scalars().all())
 
         return calificaciones, total
+
+    async def get_all_by_materia(
+        self,
+        materia_id: uuid.UUID,
+        tenant_id: uuid.UUID,
+    ) -> list[Calificacion]:
+        query = (
+            select(Calificacion)
+            .options(selectinload(Calificacion.entrada_padron))
+            .where(
+                Calificacion.tenant_id == tenant_id,
+                Calificacion.materia_id == materia_id,
+                Calificacion.deleted_at.is_(None),
+            )
+        )
+        result = await self.session.execute(query)
+        return list(result.scalars().all())
+
+    async def get_actividades_by_materia(
+        self,
+        materia_id: uuid.UUID,
+        tenant_id: uuid.UUID,
+    ) -> list[str]:
+        query = (
+            select(Calificacion.actividad)
+            .where(
+                Calificacion.tenant_id == tenant_id,
+                Calificacion.materia_id == materia_id,
+                Calificacion.deleted_at.is_(None),
+            )
+            .distinct()
+            .order_by(Calificacion.actividad)
+        )
+        result = await self.session.execute(query)
+        return list(result.scalars().all())
+
+    async def get_entradas_with_calificaciones_by_materia(
+        self,
+        materia_id: uuid.UUID,
+        tenant_id: uuid.UUID,
+    ) -> list[EntradaPadron]:
+        subquery = (
+            select(Calificacion.entrada_padron_id)
+            .where(
+                Calificacion.tenant_id == tenant_id,
+                Calificacion.materia_id == materia_id,
+                Calificacion.deleted_at.is_(None),
+            )
+            .distinct()
+            .scalar_subquery()
+        )
+        query = select(EntradaPadron).where(
+            EntradaPadron.tenant_id == tenant_id,
+            EntradaPadron.id.in_(subquery),
+            EntradaPadron.deleted_at.is_(None),
+        )
+        result = await self.session.execute(query)
+        return list(result.scalars().all())
 
     async def get_by_entrada_y_actividad(
         self,
