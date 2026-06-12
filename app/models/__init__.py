@@ -9,3 +9,4 @@ from app.models.audit import AuditLog
 from app.models.carrera import Carrera
 from app.models.cohorte import Cohorte
 from app.models.materia import Materia
+from app.models.padron import VersionPadron, EntradaPadron
