@@ -27,6 +27,9 @@ httpx = "^0.28"
 pytest = "^8.3"
 pytest-asyncio = "^0.25"
 
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
 [tool.poetry.extras]
 otel = ["opentelemetry-api", "opentelemetry-instrumentation-fastapi"]
 

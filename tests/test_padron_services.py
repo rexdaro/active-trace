@@ -10,6 +10,7 @@ from app.models.base import Base
 from app.models.tenant import Tenant
 from app.models.user import Usuario, User
 from app.models.materia import Materia
+from app.models.carrera import Carrera
 from app.models.cohorte import Cohorte
 from app.models.padron import VersionPadron, EntradaPadron
 from app.models.audit import AuditLog
@@ -61,8 +62,16 @@ async def test_materia(db_session, test_tenant):
 
 
 @pytest_asyncio.fixture
-async def test_cohorte(db_session, test_tenant):
-    cohorte = Cohorte(id=uuid.uuid4(), tenant_id=test_tenant.id, name="2025", carrera_id=uuid.uuid4(), is_active=True)
+async def test_carrera(db_session, test_tenant):
+    carrera = Carrera(id=uuid.uuid4(), tenant_id=test_tenant.id, name="Ingeniería", code="ING", is_active=True)
+    db_session.add(carrera)
+    await db_session.commit()
+    return carrera
+
+
+@pytest_asyncio.fixture
+async def test_cohorte(db_session, test_tenant, test_carrera):
+    cohorte = Cohorte(id=uuid.uuid4(), tenant_id=test_tenant.id, name="2025", carrera_id=test_carrera.id, is_active=True)
     db_session.add(cohorte)
     await db_session.commit()
     return cohorte
@@ -393,13 +402,16 @@ class TestVaciadoRN04:
         user = User(id=uuid.uuid4(), tenant_id=test_tenant.id, email="u@test.com",
                      hashed_password="h", is_2fa_enabled=False)
         db_session.add(user)
+        otro_user = User(id=uuid.uuid4(), tenant_id=test_tenant.id, email="otro@test.com",
+                          hashed_password="h", is_2fa_enabled=False)
+        db_session.add(otro_user)
         await db_session.commit()
 
         repo = PadronRepository(db_session)
         await repo.crear_version(
             tenant_id=test_tenant.id, materia_id=test_materia.id, cohorte_id=test_cohorte.id,
             archivo_nombre="other.csv", archivo_hash="h1", origen="Archivo",
-            cargado_por=uuid.uuid4(), activa=True,
+            cargado_por=otro_user.id, activa=True,
         )
 
         eliminadas = await repo.vaciar_datos_usuario(test_materia.id, user.id, test_tenant.id)

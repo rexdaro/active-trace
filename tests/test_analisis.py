@@ -11,8 +11,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from sqlalchemy import select
 from app.models.base import Base
 from app.models.tenant import Tenant
-from app.models.user import User
+from app.models.user import User, Usuario
 from app.models.materia import Materia
+from app.models.carrera import Carrera
 from app.models.cohorte import Cohorte
 from app.models.asignacion import Asignacion
 from app.models.padron import VersionPadron, EntradaPadron
@@ -62,8 +63,16 @@ async def test_materia(db_session, test_tenant):
 
 
 @pytest_asyncio.fixture
-async def test_cohorte(db_session, test_tenant):
-    cohorte = Cohorte(id=uuid.uuid4(), tenant_id=test_tenant.id, name="2025", carrera_id=uuid.uuid4(), is_active=True)
+async def test_carrera(db_session, test_tenant):
+    carrera = Carrera(id=uuid.uuid4(), tenant_id=test_tenant.id, name="Ingeniería", code="ING", is_active=True)
+    db_session.add(carrera)
+    await db_session.commit()
+    return carrera
+
+
+@pytest_asyncio.fixture
+async def test_cohorte(db_session, test_tenant, test_carrera):
+    cohorte = Cohorte(id=uuid.uuid4(), tenant_id=test_tenant.id, name="2025", carrera_id=test_carrera.id, is_active=True)
     db_session.add(cohorte)
     await db_session.commit()
     return cohorte
@@ -115,8 +124,13 @@ async def _make_user(db_session, tenant, role, email_suffix=""):
     return user
 
 
-async def _make_entrada(db_session, tenant, materia, cohorte, nombre, apellidos, email, comision="A", regional="CABA"):
-    version = VersionPadron(id=_make_id(), tenant_id=tenant.id, materia_id=materia.id, cohorte_id=cohorte.id, archivo_nombre="p.csv", archivo_hash="h", origen="A", cargado_por=_make_id(), activa=True)
+async def _make_entrada(db_session, tenant, materia, cohorte, nombre, apellidos, email, comision="A", regional="CABA", cargado_por=None):
+    if cargado_por is None:
+        u = Usuario(id=_make_id(), tenant_id=tenant.id, email=f"cargador_{_make_id()}@t.com", dni="0", cuil="0")
+        db_session.add(u)
+        await db_session.flush()
+        cargado_por = u.id
+    version = VersionPadron(id=_make_id(), tenant_id=tenant.id, materia_id=materia.id, cohorte_id=cohorte.id, archivo_nombre="p.csv", archivo_hash="h", origen="A", cargado_por=cargado_por, activa=True)
     db_session.add(version)
     await db_session.flush()
     e = EntradaPadron(id=_make_id(), version_id=version.id, tenant_id=tenant.id, nombre=nombre, apellidos=apellidos, email=email, comision=comision, regional=regional)
@@ -125,8 +139,13 @@ async def _make_entrada(db_session, tenant, materia, cohorte, nombre, apellidos,
     return e
 
 
-async def _make_calif(db_session, tenant, entrada, materia, actividad, nota_numerica=None, nota_textual=None, aprobado=False):
-    c = Calificacion(id=_make_id(), tenant_id=tenant.id, entrada_padron_id=entrada.id, materia_id=materia.id, actividad=actividad, nota_numerica=nota_numerica, nota_textual=nota_textual, aprobado=aprobado, origen=CalificacionOrigen.IMPORTADO.value, importado_por=_make_id(), importado_at=datetime.now(timezone.utc))
+async def _make_calif(db_session, tenant, entrada, materia, actividad, nota_numerica=None, nota_textual=None, aprobado=False, importado_por=None):
+    if importado_por is None:
+        u = Usuario(id=_make_id(), tenant_id=tenant.id, email=f"importador_{_make_id()}@t.com", dni="0", cuil="0")
+        db_session.add(u)
+        await db_session.flush()
+        importado_por = u.id
+    c = Calificacion(id=_make_id(), tenant_id=tenant.id, entrada_padron_id=entrada.id, materia_id=materia.id, actividad=actividad, nota_numerica=nota_numerica, nota_textual=nota_textual, aprobado=aprobado, origen=CalificacionOrigen.IMPORTADO.value, importado_por=importado_por, importado_at=datetime.now(timezone.utc))
     db_session.add(c)
     await db_session.flush()
     return c

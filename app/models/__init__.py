@@ -20,3 +20,6 @@ from app.models.aviso import Aviso, AcknowledgmentAviso, AlcanceAviso, Severidad
 from app.models.tarea import Tarea, ComentarioTarea, EstadoTarea
 from app.models.programa_materia import ProgramaMateria
 from app.models.fecha_academica import FechaAcademica, TipoFecha
+from app.models.salario import SalarioBase, SalarioPlus
+from app.models.liquidacion import Liquidacion, Factura, EstadoLiquidacion, EstadoFactura
+from app.models.mensaje_interno import MensajeInterno

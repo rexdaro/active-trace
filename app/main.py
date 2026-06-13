@@ -22,6 +22,12 @@ from app.routers.avisos import router as avisos_router
 from app.routers.tareas import router as tareas_router
 from app.routers.programas import router as programas_router
 from app.routers.fechas_academicas import router as fechas_academicas_router
+from app.routers.salarios import router as salarios_router
+from app.routers.liquidaciones import router as liquidaciones_router
+from app.routers.facturas import router as facturas_router
+from app.routers.auditoria import router as auditoria_router
+from app.routers.perfil import router as perfil_router
+from app.routers.inbox import router as inbox_router
 from app.middleware.audit import AuditLogMiddleware
 from app.workers.comunicaciones import start_worker
 
@@ -64,6 +70,12 @@ app.include_router(avisos_router)
 app.include_router(tareas_router)
 app.include_router(programas_router)
 app.include_router(fechas_academicas_router)
+app.include_router(salarios_router)
+app.include_router(liquidaciones_router)
+app.include_router(facturas_router)
+app.include_router(auditoria_router)
+app.include_router(perfil_router)
+app.include_router(inbox_router)
 
 if FastAPIInstrumentor:
     FastAPIInstrumentor.instrument_app(app)

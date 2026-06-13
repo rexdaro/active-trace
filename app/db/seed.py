@@ -24,6 +24,10 @@ PERMISSIONS = {
     "tareas:crear": ["PROFESOR", "COORDINADOR"],
     "tareas:ver": ["TUTOR", "PROFESOR", "COORDINADOR"],
     "tareas:gestionar": ["COORDINADOR", "ADMIN"],
+    "auditoria:ver": ["ADMIN", "COORDINADOR", "FINANZAS"],
+    "liquidaciones:ver": ["FINANZAS", "ADMIN"],
+    "liquidaciones:configurar-salarios": ["FINANZAS"],
+    "liquidaciones:cerrar": ["FINANZAS"],
 }
 
 

@@ -35,7 +35,10 @@ class Usuario(Base, TimestampMixin, TenantMixin):
 
     @hybrid_property
     def email(self):
-        return decrypt(self._email, os.environ.get("ENCRYPTION_KEY", "dev-key"))
+        raw = self._email
+        if not isinstance(raw, str):
+            return raw  # class-level access (e.g. hasattr during __init__)
+        return decrypt(raw, os.environ.get("ENCRYPTION_KEY", "dev-key"))
     
     @email.setter
     def email(self, value):
@@ -43,7 +46,10 @@ class Usuario(Base, TimestampMixin, TenantMixin):
 
     @hybrid_property
     def dni(self):
-        return decrypt(self._dni, os.environ.get("ENCRYPTION_KEY", "dev-key"))
+        raw = self._dni
+        if not isinstance(raw, str):
+            return raw
+        return decrypt(raw, os.environ.get("ENCRYPTION_KEY", "dev-key"))
     
     @dni.setter
     def dni(self, value):
@@ -51,7 +57,10 @@ class Usuario(Base, TimestampMixin, TenantMixin):
 
     @hybrid_property
     def cuil(self):
-        return decrypt(self._cuil, os.environ.get("ENCRYPTION_KEY", "dev-key"))
+        raw = self._cuil
+        if not isinstance(raw, str):
+            return raw
+        return decrypt(raw, os.environ.get("ENCRYPTION_KEY", "dev-key"))
     
     @cuil.setter
     def cuil(self, value):
@@ -59,9 +68,12 @@ class Usuario(Base, TimestampMixin, TenantMixin):
 
     @hybrid_property
     def cbu(self):
-        if self._cbu is None:
+        raw = self._cbu
+        if raw is None:
             return None
-        return decrypt(self._cbu, os.environ.get("ENCRYPTION_KEY", "dev-key"))
+        if not isinstance(raw, str):
+            return raw
+        return decrypt(raw, os.environ.get("ENCRYPTION_KEY", "dev-key"))
     
     @cbu.setter
     def cbu(self, value):
@@ -69,3 +81,10 @@ class Usuario(Base, TimestampMixin, TenantMixin):
             self._cbu = None
         else:
             self._cbu = encrypt(value, os.environ.get("ENCRYPTION_KEY", "dev-key"))
+
+    # Perfil fields
+    nombre: Mapped[str | None] = mapped_column(String, nullable=True)
+    datos_fiscales: Mapped[str | None] = mapped_column(String, nullable=True)
+    datos_bancarios: Mapped[str | None] = mapped_column(String, nullable=True)
+    regional: Mapped[str | None] = mapped_column(String, nullable=True)
+    modalidad_cobro: Mapped[str | None] = mapped_column(String, nullable=True)

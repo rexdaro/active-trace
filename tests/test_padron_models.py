@@ -5,6 +5,11 @@ import os
 from datetime import datetime
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from app.models.base import Base
+from app.models.tenant import Tenant
+from app.models.materia import Materia
+from app.models.carrera import Carrera
+from app.models.cohorte import Cohorte
+from app.models.user import Usuario
 from app.models.padron import VersionPadron, EntradaPadron
 
 os.environ["ENCRYPTION_KEY"] = "test-key-32-chars-long-for-encryption!!"
@@ -20,19 +25,36 @@ async def db_session():
         yield session
 
 
+async def _make_prereqs(db_session):
+    """Create minimal prerequisite records for VersionPadron FK constraints."""
+    tenant = Tenant(id=uuid.uuid4(), name="Test")
+    db_session.add(tenant)
+    materia = Materia(id=uuid.uuid4(), tenant_id=tenant.id, name="M", code="M", is_active=True)
+    db_session.add(materia)
+    carrera = Carrera(id=uuid.uuid4(), tenant_id=tenant.id, name="C", code="C", is_active=True)
+    db_session.add(carrera)
+    cohorte = Cohorte(id=uuid.uuid4(), tenant_id=tenant.id, name="2025", carrera_id=carrera.id, is_active=True)
+    db_session.add(cohorte)
+    user = Usuario(id=uuid.uuid4(), tenant_id=tenant.id, email=f"u_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+    db_session.add(user)
+    await db_session.flush()
+    return tenant, materia, cohorte, user
+
+
 class TestVersionPadronModel:
 
     @pytest.mark.asyncio
     async def test_version_padron_fields(self, db_session):
+        tenant, materia, cohorte, user = await _make_prereqs(db_session)
         version = VersionPadron(
             id=uuid.uuid4(),
-            tenant_id=uuid.uuid4(),
-            materia_id=uuid.uuid4(),
-            cohorte_id=uuid.uuid4(),
+            tenant_id=tenant.id,
+            materia_id=materia.id,
+            cohorte_id=cohorte.id,
             archivo_nombre="alumnos.xlsx",
             archivo_hash="abc123def456",
             origen="Archivo",
-            cargado_por=uuid.uuid4(),
+            cargado_por=user.id,
             activa=True,
         )
         db_session.add(version)
@@ -47,14 +69,15 @@ class TestVersionPadronModel:
 
     @pytest.mark.asyncio
     async def test_version_padron_defaults(self, db_session):
+        tenant, materia, cohorte, user = await _make_prereqs(db_session)
         version = VersionPadron(
-            tenant_id=uuid.uuid4(),
-            materia_id=uuid.uuid4(),
-            cohorte_id=uuid.uuid4(),
+            tenant_id=tenant.id,
+            materia_id=materia.id,
+            cohorte_id=cohorte.id,
             archivo_nombre="test.csv",
             archivo_hash="hash",
             origen="MoodleWS",
-            cargado_por=uuid.uuid4(),
+            cargado_por=user.id,
         )
         db_session.add(version)
         await db_session.commit()
@@ -66,14 +89,15 @@ class TestEntradaPadronModel:
 
     @pytest.mark.asyncio
     async def test_entrada_padron_fields(self, db_session):
+        tenant, materia, cohorte, user = await _make_prereqs(db_session)
         version = VersionPadron(
-            tenant_id=uuid.uuid4(),
-            materia_id=uuid.uuid4(),
-            cohorte_id=uuid.uuid4(),
+            tenant_id=tenant.id,
+            materia_id=materia.id,
+            cohorte_id=cohorte.id,
             archivo_nombre="test.xlsx",
             archivo_hash="hash1",
             origen="Archivo",
-            cargado_por=uuid.uuid4(),
+            cargado_por=user.id,
         )
         db_session.add(version)
         await db_session.commit()
@@ -101,14 +125,15 @@ class TestEntradaPadronModel:
 
     @pytest.mark.asyncio
     async def test_entrada_padron_email_encryption(self, db_session):
+        tenant, materia, cohorte, user = await _make_prereqs(db_session)
         version = VersionPadron(
-            tenant_id=uuid.uuid4(),
-            materia_id=uuid.uuid4(),
-            cohorte_id=uuid.uuid4(),
+            tenant_id=tenant.id,
+            materia_id=materia.id,
+            cohorte_id=cohorte.id,
             archivo_nombre="test.xlsx",
             archivo_hash="hash2",
             origen="Archivo",
-            cargado_por=uuid.uuid4(),
+            cargado_por=user.id,
         )
         db_session.add(version)
         await db_session.commit()

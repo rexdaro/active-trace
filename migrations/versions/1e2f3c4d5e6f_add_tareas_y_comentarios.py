@@ -32,7 +32,7 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["tenant_id"], ["tenants.id"],),
         sa.ForeignKeyConstraint(["materia_id"], ["materias.id"],),
         sa.ForeignKeyConstraint(["asignado_a"], ["usuarios.id"],),
-        sa.ForeignKeyConstraint(["asignado_por"], ["users.id"],),
+        sa.ForeignKeyConstraint(["asignado_por"], ["usuarios.id"],),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
@@ -47,7 +47,7 @@ def upgrade() -> None:
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(["tenant_id"], ["tenants.id"],),
         sa.ForeignKeyConstraint(["tarea_id"], ["tareas.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["autor_id"], ["users.id"],),
+        sa.ForeignKeyConstraint(["autor_id"], ["usuarios.id"],),
         sa.PrimaryKeyConstraint("id"),
     )
 

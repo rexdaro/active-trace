@@ -11,6 +11,7 @@ from app.models.base import Base
 from app.models.tenant import Tenant
 from app.models.user import Usuario, User
 from app.models.materia import Materia
+from app.models.carrera import Carrera
 from app.models.cohorte import Cohorte
 from app.models.asignacion import Asignacion
 from app.models.padron import VersionPadron, EntradaPadron
@@ -75,8 +76,16 @@ async def test_materia(db_session, test_tenant):
 
 
 @pytest_asyncio.fixture
-async def test_cohorte(db_session, test_tenant):
-    cohorte = Cohorte(id=uuid.uuid4(), tenant_id=test_tenant.id, name="2025", carrera_id=uuid.uuid4(), is_active=True)
+async def test_carrera(db_session, test_tenant):
+    carrera = Carrera(id=uuid.uuid4(), tenant_id=test_tenant.id, name="Ingeniería", code="ING", is_active=True)
+    db_session.add(carrera)
+    await db_session.commit()
+    return carrera
+
+
+@pytest_asyncio.fixture
+async def test_cohorte(db_session, test_tenant, test_carrera):
+    cohorte = Cohorte(id=uuid.uuid4(), tenant_id=test_tenant.id, name="2025", carrera_id=test_carrera.id, is_active=True)
     db_session.add(cohorte)
     await db_session.commit()
     return cohorte
