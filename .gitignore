@@ -21,3 +21,7 @@ test.db
 __pycache__/
 
 
+
+# Logs
+uvicorn.log
+uvicorn.err.log

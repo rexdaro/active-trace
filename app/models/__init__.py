@@ -18,3 +18,5 @@ from app.models.guardia import Guardia, EstadoGuardia
 from app.models.coloquio import Evaluacion, ReservaEvaluacion, ResultadoEvaluacion, TipoEvaluacion, EstadoReserva
 from app.models.aviso import Aviso, AcknowledgmentAviso, AlcanceAviso, SeveridadAviso
 from app.models.tarea import Tarea, ComentarioTarea, EstadoTarea
+from app.models.programa_materia import ProgramaMateria
+from app.models.fecha_academica import FechaAcademica, TipoFecha

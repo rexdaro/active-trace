@@ -17,7 +17,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     op.add_column(
         "tenants",
-        sa.Column("requiere_aprobacion", sa.Boolean(), server_default=sa.text("0"), nullable=False),
+        sa.Column("requiere_aprobacion", sa.Boolean(), server_default=sa.text("false"), nullable=False),
     )
     op.create_table(
         "comunicaciones",
@@ -30,7 +30,7 @@ def upgrade() -> None:
         sa.Column("cuerpo", sa.Text(), nullable=False),
         sa.Column("estado", sa.String(), nullable=False, server_default=sa.text("'Pendiente'")),
         sa.Column("lote_id", sa.Uuid(), nullable=True),
-        sa.Column("lote_aprobado", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("lote_aprobado", sa.Boolean(), nullable=False, server_default=sa.text("false")),
         sa.Column("enviado_at", sa.DateTime(), nullable=True),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("(CURRENT_TIMESTAMP)"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("(CURRENT_TIMESTAMP)"), nullable=False),

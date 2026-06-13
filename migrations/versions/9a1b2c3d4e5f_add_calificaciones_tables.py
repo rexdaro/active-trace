@@ -24,7 +24,7 @@ def upgrade() -> None:
         sa.Column("actividad", sa.String(), nullable=False),
         sa.Column("nota_numerica", sa.Numeric(5, 2), nullable=True),
         sa.Column("nota_textual", sa.String(), nullable=True),
-        sa.Column("aprobado", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("aprobado", sa.Boolean(), nullable=False, server_default=sa.text("false")),
         sa.Column("origen", sa.String(), nullable=False),
         sa.Column("importado_por", sa.Uuid(), nullable=True),
         sa.Column("importado_at", sa.DateTime(), nullable=True),

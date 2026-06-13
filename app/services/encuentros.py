@@ -249,7 +249,7 @@ class EncuentrosService:
         db: AsyncSession,
         materia_id: uuid.UUID,
         user: User,
-    ) -> HtmlBlockResponse:
+    ) -> HTMLBlockResponse:
         from app.models.encuentro import InstanciaEncuentro
         from sqlalchemy import select
 

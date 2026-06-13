@@ -28,7 +28,7 @@ def upgrade() -> None:
         sa.Column("meet_url", sa.String(), nullable=True),
         sa.Column("fecha_inicio", sa.Date(), nullable=False),
         sa.Column("cant_semanas", sa.Integer(), nullable=False),
-        sa.Column("activo", sa.Boolean(), nullable=False, server_default=sa.text("1")),
+        sa.Column("activo", sa.Boolean(), nullable=False, server_default=sa.text("true")),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("(CURRENT_TIMESTAMP)"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("(CURRENT_TIMESTAMP)"), nullable=False),
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
