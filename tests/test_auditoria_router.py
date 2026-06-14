@@ -384,14 +384,23 @@ async def scope_integration_setup(db_session):
 
     materia_id = uuid.uuid4()
 
+    coordinador_id = uuid.uuid4()
     coordinador = User(
-        id=uuid.uuid4(),
+        id=coordinador_id,
         tenant_id=tenant.id,
         email="coord@test.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
     )
     db_session.add(coordinador)
+    usuario = Usuario(
+        id=coordinador_id,
+        tenant_id=tenant.id,
+        email="coord@test.com",
+        dni="0",
+        cuil="0",
+    )
+    db_session.add(usuario)
     await db_session.flush()
 
     ur = UserRole(user_id=coordinador.id, role_id=coordinador_role.id)

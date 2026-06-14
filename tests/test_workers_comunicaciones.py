@@ -7,6 +7,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from app.models.base import Base
 from app.models.tenant import Tenant
+from app.models.user import Usuario
+from app.models.materia import Materia
 from app.models.comunicacion import Comunicacion, ComunicacionEstado
 from app.repositories.comunicaciones import ComunicacionesRepository
 
@@ -48,11 +50,16 @@ async def tenant_b(db_session):
 
 
 async def _crear_comunicacion(db, tenant_id, estado=ComunicacionEstado.PENDIENTE.value, lote_aprobado=False):
+    usuario = Usuario(id=uuid.uuid4(), tenant_id=tenant_id, email=f"env_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+    db.add(usuario)
+    materia = Materia(id=uuid.uuid4(), tenant_id=tenant_id, name="M", code="M", is_active=True)
+    db.add(materia)
+    await db.flush()
     c = Comunicacion(
         id=uuid.uuid4(),
         tenant_id=tenant_id,
-        enviado_por=uuid.uuid4(),
-        materia_id=uuid.uuid4(),
+        enviado_por=usuario.id,
+        materia_id=materia.id,
         destinatario="alumno@test.com",
         asunto="Test",
         cuerpo="Cuerpo",

@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from app.models.base import Base
 from app.models.tenant import Tenant
-from app.models.user import User
+from app.models.user import User, Usuario
 from app.models.materia import Materia
 from app.models.cohorte import Cohorte
 from app.models.carrera import Carrera
@@ -42,28 +42,46 @@ async def test_tenant(db_session):
 
 @pytest_asyncio.fixture
 async def mock_user(db_session, test_tenant):
+    uid = uuid.uuid4()
     user = User(
-        id=uuid.uuid4(),
+        id=uid,
         tenant_id=test_tenant.id,
         email="alumno@test.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
     )
     db_session.add(user)
+    usuario = Usuario(
+        id=uid,
+        tenant_id=test_tenant.id,
+        email="alumno@test.com",
+        dni="0",
+        cuil="0",
+    )
+    db_session.add(usuario)
     await db_session.commit()
     return user
 
 
 @pytest_asyncio.fixture
 async def mock_coordinador(db_session, test_tenant):
+    uid = uuid.uuid4()
     user = User(
-        id=uuid.uuid4(),
+        id=uid,
         tenant_id=test_tenant.id,
         email="coord@test.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
     )
     db_session.add(user)
+    usuario = Usuario(
+        id=uid,
+        tenant_id=test_tenant.id,
+        email="coord@test.com",
+        dni="0",
+        cuil="0",
+    )
+    db_session.add(usuario)
     await db_session.commit()
     return user
 
@@ -128,14 +146,23 @@ async def test_evaluacion(db_session, test_tenant, test_materia, test_cohorte):
 
 @pytest_asyncio.fixture
 async def otro_alumno(db_session, test_tenant):
+    uid = uuid.uuid4()
     user = User(
-        id=uuid.uuid4(),
+        id=uid,
         tenant_id=test_tenant.id,
         email="otro@test.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
     )
     db_session.add(user)
+    usuario = Usuario(
+        id=uid,
+        tenant_id=test_tenant.id,
+        email="otro@test.com",
+        dni="0",
+        cuil="0",
+    )
+    db_session.add(usuario)
     await db_session.commit()
     return user
 
@@ -359,9 +386,15 @@ class TestImportAlumnos:
     async def test_import_returns_count_and_audit(
         self, db_session, test_tenant, test_evaluacion, mock_coordinador,
     ):
+        alumno_ids = []
+        for _ in range(3):
+            u = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"imp_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+            db_session.add(u)
+            alumno_ids.append(u.id)
+        await db_session.flush()
         request = ImportAlumnosRequest(
             evaluacion_id=test_evaluacion.id,
-            alumno_ids=[uuid.uuid4(), uuid.uuid4(), uuid.uuid4()],
+            alumno_ids=alumno_ids,
         )
         result = await ColoquiosService.import_alumnos(db_session, request, mock_coordinador)
 
@@ -385,9 +418,12 @@ class TestRegistrarResultado:
     async def test_creates_resultado_and_audit(
         self, db_session, test_tenant, test_evaluacion, mock_coordinador,
     ):
+        alumno = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"res_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+        db_session.add(alumno)
+        await db_session.flush()
         request = ResultadoCreate(
             evaluacion_id=test_evaluacion.id,
-            alumno_id=uuid.uuid4(),
+            alumno_id=alumno.id,
             nota_final="8",
         )
         result = await ColoquiosService.registrar_resultado(db_session, request, mock_coordinador)
@@ -409,17 +445,21 @@ class TestGetResultados:
     async def test_returns_list_for_evaluacion(
         self, db_session, test_tenant, test_evaluacion, mock_coordinador,
     ):
+        a1 = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"rl1_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+        a2 = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"rl2_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+        db_session.add_all([a1, a2])
+        await db_session.flush()
         r1 = ResultadoEvaluacion(
             id=uuid.uuid4(),
             evaluacion_id=test_evaluacion.id,
-            alumno_id=uuid.uuid4(),
+            alumno_id=a1.id,
             nota_final="7",
             tenant_id=test_tenant.id,
         )
         r2 = ResultadoEvaluacion(
             id=uuid.uuid4(),
             evaluacion_id=test_evaluacion.id,
-            alumno_id=uuid.uuid4(),
+            alumno_id=a2.id,
             nota_final="9",
             tenant_id=test_tenant.id,
         )

@@ -115,8 +115,11 @@ def _make_id():
 
 
 async def _make_user(db_session, tenant, role, email_suffix=""):
-    user = User(id=_make_id(), tenant_id=tenant.id, email=f"u{email_suffix}@t.com", hashed_password="h", is_2fa_enabled=False)
+    uid = _make_id()
+    user = User(id=uid, tenant_id=tenant.id, email=f"u{email_suffix}@t.com", hashed_password="h", is_2fa_enabled=False)
     db_session.add(user)
+    usuario = Usuario(id=uid, tenant_id=tenant.id, email=f"u{email_suffix}@t.com", dni="0", cuil="0")
+    db_session.add(usuario)
     await db_session.flush()
     ur = UserRole(user_id=user.id, role_id=role.id)
     db_session.add(ur)

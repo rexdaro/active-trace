@@ -21,6 +21,7 @@ from app.models.rbac import Role, Permission, RolePermission
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from app.models.aviso import Aviso, AcknowledgmentAviso, AlcanceAviso
+from app.models.user import Usuario
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -231,14 +232,23 @@ async def integration_setup(db_session):
     rp3 = RolePermission(role_id=role.id, permission_id=perm_confirmar.id)
     db_session.add_all([rp1, rp2, rp3])
 
+    uid = uuid.uuid4()
     user = User(
-        id=uuid.uuid4(),
+        id=uid,
         tenant_id=tenant.id,
         email="coord@test.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
     )
     db_session.add(user)
+    usuario = Usuario(
+        id=uid,
+        tenant_id=tenant.id,
+        email="coord@test.com",
+        dni="0",
+        cuil="0",
+    )
+    db_session.add(usuario)
 
     ur = UserRole(user_id=user.id, role_id=role.id)
     db_session.add(ur)

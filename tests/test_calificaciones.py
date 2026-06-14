@@ -55,14 +55,22 @@ async def test_tenant(db_session):
 
 @pytest_asyncio.fixture
 async def mock_user(db_session, test_tenant):
+    uid = uuid.uuid4()
     user = User(
-        id=uuid.uuid4(),
+        id=uid,
         tenant_id=test_tenant.id,
         email="teacher@test.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
     )
-    db_session.add(user)
+    usuario = Usuario(
+        id=uid,
+        tenant_id=test_tenant.id,
+        email="teacher@test.com",
+        dni="0",
+        cuil="0",
+    )
+    db_session.add_all([user, usuario])
     await db_session.commit()
     return user
 
@@ -386,9 +394,13 @@ class TestUmbral:
         db_session.add(role)
         await db_session.commit()
 
-        user_a = User(id=uuid.uuid4(), tenant_id=test_tenant.id, email="a@test.com", hashed_password="h", is_2fa_enabled=False)
-        user_b = User(id=uuid.uuid4(), tenant_id=test_tenant.id, email="b@test.com", hashed_password="h", is_2fa_enabled=False)
-        db_session.add_all([user_a, user_b])
+        uid_a = uuid.uuid4()
+        uid_b = uuid.uuid4()
+        user_a = User(id=uid_a, tenant_id=test_tenant.id, email="a@test.com", hashed_password="h", is_2fa_enabled=False)
+        user_b = User(id=uid_b, tenant_id=test_tenant.id, email="b@test.com", hashed_password="h", is_2fa_enabled=False)
+        usr_a = Usuario(id=uid_a, tenant_id=test_tenant.id, email="a@test.com", dni="0", cuil="0")
+        usr_b = Usuario(id=uid_b, tenant_id=test_tenant.id, email="b@test.com", dni="0", cuil="0")
+        db_session.add_all([user_a, user_b, usr_a, usr_b])
         await db_session.commit()
 
         asig_a = Asignacion(id=uuid.uuid4(), tenant_id=test_tenant.id, user_id=user_a.id, role_id=role.id, contexto_id=test_materia.id, desde=datetime.now(timezone.utc))
@@ -526,11 +538,15 @@ class TestVaciadoRN04:
 
     @pytest.mark.asyncio
     async def test_vacia_solo_propias_calificaciones(self, db_session, test_tenant, test_materia, test_entrada_padron):
-        user1 = User(id=uuid.uuid4(), tenant_id=test_tenant.id, email="u1@test.com",
+        uid1 = uuid.uuid4()
+        uid2 = uuid.uuid4()
+        user1 = User(id=uid1, tenant_id=test_tenant.id, email="u1@test.com",
                       hashed_password="h", is_2fa_enabled=False)
-        user2 = User(id=uuid.uuid4(), tenant_id=test_tenant.id, email="u2@test.com",
+        user2 = User(id=uid2, tenant_id=test_tenant.id, email="u2@test.com",
                       hashed_password="h", is_2fa_enabled=False)
-        db_session.add_all([user1, user2])
+        usr1 = Usuario(id=uid1, tenant_id=test_tenant.id, email="u1@test.com", dni="0", cuil="0")
+        usr2 = Usuario(id=uid2, tenant_id=test_tenant.id, email="u2@test.com", dni="0", cuil="0")
+        db_session.add_all([user1, user2, usr1, usr2])
         await db_session.commit()
 
         repo = CalificacionesRepository(db_session)
@@ -564,11 +580,15 @@ class TestVaciadoRN04:
 
     @pytest.mark.asyncio
     async def test_calificaciones_otros_no_se_modifican(self, db_session, test_tenant, test_materia, test_entrada_padron):
-        user1 = User(id=uuid.uuid4(), tenant_id=test_tenant.id, email="u1@test.com",
+        uid1 = uuid.uuid4()
+        uid2 = uuid.uuid4()
+        user1 = User(id=uid1, tenant_id=test_tenant.id, email="u1@test.com",
                       hashed_password="h", is_2fa_enabled=False)
-        user2 = User(id=uuid.uuid4(), tenant_id=test_tenant.id, email="u2@test.com",
+        user2 = User(id=uid2, tenant_id=test_tenant.id, email="u2@test.com",
                       hashed_password="h", is_2fa_enabled=False)
-        db_session.add_all([user1, user2])
+        usr1 = Usuario(id=uid1, tenant_id=test_tenant.id, email="u1@test.com", dni="0", cuil="0")
+        usr2 = Usuario(id=uid2, tenant_id=test_tenant.id, email="u2@test.com", dni="0", cuil="0")
+        db_session.add_all([user1, user2, usr1, usr2])
         await db_session.commit()
 
         repo = CalificacionesRepository(db_session)

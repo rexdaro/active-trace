@@ -41,14 +41,23 @@ async def test_tenant(db_session):
 
 @pytest_asyncio.fixture
 async def mock_user(db_session, test_tenant):
+    uid = uuid.uuid4()
     user = User(
-        id=uuid.uuid4(),
+        id=uid,
         tenant_id=test_tenant.id,
         email="user@test.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
     )
     db_session.add(user)
+    usuario = Usuario(
+        id=uid,
+        tenant_id=test_tenant.id,
+        email="user@test.com",
+        dni="0",
+        cuil="0",
+    )
+    db_session.add(usuario)
     await db_session.commit()
     return user
 
@@ -293,14 +302,11 @@ class TestEntradaSinUsuario:
 
     @pytest.mark.asyncio
     async def test_alumno_con_cuenta_existente(self, db_session, mock_user, test_tenant, test_materia, test_cohorte):
-        usuario = Usuario(
-            id=mock_user.id,
-            tenant_id=test_tenant.id,
-        )
+        usuario = await db_session.get(Usuario, mock_user.id)
+        assert usuario is not None
         usuario.dni = "12345678"
         usuario.cuil = "20123456782"
         usuario.email = "existente@test.com"
-        db_session.add(usuario)
         await db_session.commit()
         await db_session.refresh(usuario)
 

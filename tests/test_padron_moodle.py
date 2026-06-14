@@ -44,14 +44,23 @@ async def test_tenant(db_session):
 
 @pytest_asyncio.fixture
 async def mock_user(db_session, test_tenant):
+    uid = uuid.uuid4()
     user = User(
-        id=uuid.uuid4(),
+        id=uid,
         tenant_id=test_tenant.id,
         email="admin@test.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
     )
     db_session.add(user)
+    usuario = Usuario(
+        id=uid,
+        tenant_id=test_tenant.id,
+        email="admin@test.com",
+        dni="0",
+        cuil="0",
+    )
+    db_session.add(usuario)
     await db_session.commit()
     return user
 

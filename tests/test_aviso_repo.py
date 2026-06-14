@@ -7,6 +7,10 @@ from sqlalchemy.exc import IntegrityError
 from app.models.base import Base
 from app.models.tenant import Tenant
 from app.models.aviso import Aviso, AcknowledgmentAviso, AlcanceAviso, SeveridadAviso
+from app.models.user import Usuario
+from app.models.materia import Materia
+from app.models.carrera import Carrera
+from app.models.cohorte import Cohorte
 from app.repositories.avisos import AvisoRepository
 from app.schemas.aviso import AvisoListParams
 
@@ -32,6 +36,38 @@ async def test_tenant(db_session):
 @pytest_asyncio.fixture
 async def repo(db_session):
     return AvisoRepository(db_session)
+
+
+@pytest_asyncio.fixture
+async def test_usuario(db_session, test_tenant):
+    u = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"fix_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+    db_session.add(u)
+    await db_session.commit()
+    return u
+
+
+@pytest_asyncio.fixture
+async def test_materia(db_session, test_tenant):
+    m = Materia(id=uuid.uuid4(), tenant_id=test_tenant.id, name="T", code="T", is_active=True)
+    db_session.add(m)
+    await db_session.commit()
+    return m
+
+
+@pytest_asyncio.fixture
+async def test_carrera(db_session, test_tenant):
+    c = Carrera(id=uuid.uuid4(), tenant_id=test_tenant.id, name="T", code="T", is_active=True)
+    db_session.add(c)
+    await db_session.commit()
+    return c
+
+
+@pytest_asyncio.fixture
+async def test_cohorte(db_session, test_tenant, test_carrera):
+    co = Cohorte(id=uuid.uuid4(), tenant_id=test_tenant.id, carrera_id=test_carrera.id, name="2025", is_active=True)
+    db_session.add(co)
+    await db_session.commit()
+    return co
 
 
 def utc_now():
@@ -154,8 +190,8 @@ class TestAvisoRepo:
         assert visibles[1].orden == 1
         assert visibles[2].orden == 2
 
-    async def test_list_visibles_por_materia(self, repo, db_session, test_tenant):
-        materia_id = uuid.uuid4()
+    async def test_list_visibles_por_materia(self, repo, db_session, test_tenant, test_materia):
+        materia_id = test_materia.id
         otra_materia_id = uuid.uuid4()
 
         data = {
@@ -181,8 +217,8 @@ class TestAvisoRepo:
         )
         assert len(visibles_otro) == 0
 
-    async def test_list_visibles_por_cohorte(self, repo, db_session, test_tenant):
-        cohorte_id = uuid.uuid4()
+    async def test_list_visibles_por_cohorte(self, repo, db_session, test_tenant, test_cohorte):
+        cohorte_id = test_cohorte.id
 
         data = {
             "titulo": "Por cohorte",
@@ -207,7 +243,7 @@ class TestAvisoRepo:
         )
         assert len(visibles_otro) == 0
 
-    async def test_create_ack(self, repo, db_session, test_tenant):
+    async def test_create_ack(self, repo, db_session, test_tenant, test_usuario):
         data = {
             "titulo": "Con ack",
             "cuerpo": "Requiere confirmación.",
@@ -219,7 +255,7 @@ class TestAvisoRepo:
         aviso = await repo.create(data, test_tenant.id)
         await db_session.commit()
 
-        usuario_id = uuid.uuid4()
+        usuario_id = test_usuario.id
         ack = await repo.create_ack(aviso.id, usuario_id, test_tenant.id)
         await db_session.commit()
 
@@ -233,7 +269,7 @@ class TestAvisoRepo:
         assert fetched is not None
         assert fetched.id == ack.id
 
-    async def test_ack_unique(self, repo, db_session, test_tenant):
+    async def test_ack_unique(self, repo, db_session, test_tenant, test_usuario):
         data = {
             "titulo": "Ack único",
             "cuerpo": "Solo un ack por usuario.",
@@ -244,7 +280,7 @@ class TestAvisoRepo:
         aviso = await repo.create(data, test_tenant.id)
         await db_session.commit()
 
-        usuario_id = uuid.uuid4()
+        usuario_id = test_usuario.id
         await repo.create_ack(aviso.id, usuario_id, test_tenant.id)
         await db_session.commit()
 
@@ -264,7 +300,10 @@ class TestAvisoRepo:
         await db_session.commit()
 
         for _ in range(3):
-            ack = await repo.create_ack(aviso.id, uuid.uuid4(), test_tenant.id)
+            u = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"ack_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+            db_session.add(u)
+            await db_session.flush()
+            ack = await repo.create_ack(aviso.id, u.id, test_tenant.id)
             db_session.add(ack)
         await db_session.commit()
 
@@ -347,9 +386,11 @@ class TestAvisoRepo:
 
         usuario_ids = []
         for _ in range(3):
-            uid = uuid.uuid4()
-            usuario_ids.append(uid)
-            ack = await repo.create_ack(aviso.id, uid, test_tenant.id)
+            u = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"listack_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+            db_session.add(u)
+            await db_session.flush()
+            usuario_ids.append(u.id)
+            ack = await repo.create_ack(aviso.id, u.id, test_tenant.id)
             db_session.add(ack)
         await db_session.commit()
 

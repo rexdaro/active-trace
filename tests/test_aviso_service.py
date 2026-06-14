@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy import select
 from app.models.base import Base
 from app.models.tenant import Tenant
-from app.models.user import User
+from app.models.user import User, Usuario
 from app.models.user_role import UserRole
 from app.models.rbac import Role
 from app.models.materia import Materia
@@ -41,14 +41,23 @@ async def test_tenant(db_session):
 
 @pytest_asyncio.fixture
 async def admin_user(db_session, test_tenant):
+    uid = uuid.uuid4()
     user = User(
-        id=uuid.uuid4(),
+        id=uid,
         tenant_id=test_tenant.id,
         email="admin@test.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
     )
     db_session.add(user)
+    usuario = Usuario(
+        id=uid,
+        tenant_id=test_tenant.id,
+        email="admin@test.com",
+        dni="0",
+        cuil="0",
+    )
+    db_session.add(usuario)
     await db_session.commit()
     return user
 
@@ -59,14 +68,23 @@ async def alumno_user(db_session, test_tenant):
     db_session.add(role)
     await db_session.flush()
 
+    uid = uuid.uuid4()
     user = User(
-        id=uuid.uuid4(),
+        id=uid,
         tenant_id=test_tenant.id,
         email="alumno@test.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
     )
     db_session.add(user)
+    usuario = Usuario(
+        id=uid,
+        tenant_id=test_tenant.id,
+        email="alumno@test.com",
+        dni="0",
+        cuil="0",
+    )
+    db_session.add(usuario)
     ur = UserRole(user_id=user.id, role_id=role.id)
     db_session.add(ur)
     await db_session.commit()
@@ -545,11 +563,14 @@ class TestGetMetricas:
         await db_session.commit()
 
         for _ in range(3):
+            u = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"met_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+            db_session.add(u)
+            await db_session.flush()
             ack = AcknowledgmentAviso(
                 id=uuid.uuid4(),
                 tenant_id=test_tenant.id,
                 aviso_id=aviso.id,
-                usuario_id=uuid.uuid4(),
+                usuario_id=u.id,
                 confirmado_at=utc_now(),
             )
             db_session.add(ack)

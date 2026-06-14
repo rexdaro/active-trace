@@ -8,6 +8,7 @@ from sqlalchemy import select
 from app.models.base import Base
 from app.models.tenant import Tenant
 from app.models.user import Usuario, User
+from app.models.tenant import Tenant
 from app.models.rbac import Role
 from app.models.asignacion import Asignacion
 from app.models.audit import AuditLog
@@ -51,14 +52,23 @@ async def test_role(db_session):
 
 @pytest_asyncio.fixture
 async def mock_user(db_session, test_tenant):
+    uid = uuid.uuid4()
     user = User(
-        id=uuid.uuid4(),
+        id=uid,
         tenant_id=test_tenant.id,
         email="coord@test.com",
         hashed_password="hashed_placeholder",
         is_2fa_enabled=False,
     )
     db_session.add(user)
+    usuario = Usuario(
+        id=uid,
+        tenant_id=test_tenant.id,
+        email="coord@test.com",
+        dni="0",
+        cuil="0",
+    )
+    db_session.add(usuario)
     await db_session.commit()
     return user
 
@@ -79,13 +89,15 @@ class TestMisEquipos:
 
     @pytest.mark.asyncio
     async def test_mis_equipos_returns_only_own(self, db_session, mock_user, test_tenant, test_role):
-        other_user_id = uuid.uuid4()
+        other = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"other_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+        db_session.add(other)
+        await db_session.flush()
         ctx1 = uuid.uuid4()
         ctx2 = uuid.uuid4()
 
         a_mine = make_asignacion(test_tenant.id, mock_user.id, test_role.id, ctx1,
                                  desde=datetime(2025, 3, 1, tzinfo=timezone.utc))
-        a_other = make_asignacion(test_tenant.id, other_user_id, test_role.id, ctx2,
+        a_other = make_asignacion(test_tenant.id, other.id, test_role.id, ctx2,
                                   desde=datetime(2025, 3, 1, tzinfo=timezone.utc))
         db_session.add_all([a_mine, a_other])
         await db_session.commit()
@@ -97,8 +109,12 @@ class TestMisEquipos:
 
     @pytest.mark.asyncio
     async def test_mis_equipos_tenant_isolation(self, db_session, mock_user, test_tenant, test_role):
-        other_tenant_id = uuid.uuid4()
-        a_other = make_asignacion(other_tenant_id, mock_user.id, test_role.id, uuid.uuid4(),
+        other_tenant = Tenant(id=uuid.uuid4(), name="Other Tenant")
+        db_session.add(other_tenant)
+        other_user = Usuario(id=uuid.uuid4(), tenant_id=other_tenant.id, email=f"oth_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+        db_session.add(other_user)
+        await db_session.flush()
+        a_other = make_asignacion(other_tenant.id, other_user.id, test_role.id, uuid.uuid4(),
                                   desde=datetime(2025, 3, 1, tzinfo=timezone.utc))
         db_session.add(a_other)
         await db_session.commit()
@@ -118,15 +134,17 @@ class TestAsignacionMasiva:
 
     @pytest.mark.asyncio
     async def test_creates_n_asignaciones(self, db_session, mock_user, test_tenant, test_role):
-        uid1 = uuid.uuid4()
-        uid2 = uuid.uuid4()
+        u1 = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"mas1_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+        u2 = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"mas2_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+        db_session.add_all([u1, u2])
+        await db_session.flush()
         ctx = uuid.uuid4()
         from_date = datetime(2025, 3, 1, tzinfo=timezone.utc)
 
         request = AsignacionMasivaRequest(asignaciones=[
-            {"user_id": uid1, "role_id": test_role.id, "contexto_id": ctx,
+            {"user_id": u1.id, "role_id": test_role.id, "contexto_id": ctx,
              "desde": from_date, "hasta": None},
-            {"user_id": uid2, "role_id": test_role.id, "contexto_id": ctx,
+            {"user_id": u2.id, "role_id": test_role.id, "contexto_id": ctx,
              "desde": from_date, "hasta": None},
         ])
 
@@ -140,10 +158,12 @@ class TestAsignacionMasiva:
         ctx = uuid.uuid4()
         from_date = datetime(2025, 3, 1, tzinfo=timezone.utc)
         until_date = datetime(2025, 12, 31, tzinfo=timezone.utc)
-        uid = uuid.uuid4()
+        u = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"allf_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+        db_session.add(u)
+        await db_session.flush()
 
         request = AsignacionMasivaRequest(asignaciones=[
-            {"user_id": uid, "role_id": test_role.id, "contexto_id": ctx,
+            {"user_id": u.id, "role_id": test_role.id, "contexto_id": ctx,
              "responsable_id": mock_user.id, "desde": from_date, "hasta": until_date},
         ])
 
@@ -155,9 +175,12 @@ class TestAsignacionMasiva:
         assert a.hasta.replace(tzinfo=timezone.utc) == until_date
 
     @pytest.mark.asyncio
-    async def test_audit_logged(self, db_session, mock_user, test_role):
+    async def test_audit_logged(self, db_session, mock_user, test_tenant, test_role):
+        u = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"aud_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+        db_session.add(u)
+        await db_session.flush()
         request = AsignacionMasivaRequest(asignaciones=[
-            {"user_id": uuid.uuid4(), "role_id": test_role.id, "contexto_id": uuid.uuid4(),
+            {"user_id": u.id, "role_id": test_role.id, "contexto_id": uuid.uuid4(),
              "desde": datetime(2025, 3, 1, tzinfo=timezone.utc)},
         ])
 
@@ -382,20 +405,25 @@ class TestExportar:
 class TestTenantIsolation:
 
     @pytest.mark.asyncio
-    async def test_tenant_no_ve_otros_datos(self, db_session, test_role):
-        tenant_a_id = uuid.uuid4()
-        tenant_b_id = uuid.uuid4()
+    async def test_tenant_no_ve_otros_datos(self, db_session, test_tenant, test_role):
+        tenant_a = Tenant(id=uuid.uuid4(), name="Tenant A")
+        tenant_b = Tenant(id=uuid.uuid4(), name="Tenant B")
+        db_session.add_all([tenant_a, tenant_b])
+        await db_session.flush()
 
-        user_a = User(id=uuid.uuid4(), tenant_id=tenant_a_id, email="a@test.com",
+        user_a = User(id=uuid.uuid4(), tenant_id=tenant_a.id, email="a@test.com",
                        hashed_password="ph", is_2fa_enabled=False)
-        user_b = User(id=uuid.uuid4(), tenant_id=tenant_b_id, email="b@test.com",
+        user_b = User(id=uuid.uuid4(), tenant_id=tenant_b.id, email="b@test.com",
                        hashed_password="ph", is_2fa_enabled=False)
-        db_session.add_all([user_a, user_b])
+        usr_a = Usuario(id=user_a.id, tenant_id=tenant_a.id, email="a@test.com", dni="0", cuil="0")
+        usr_b = Usuario(id=user_b.id, tenant_id=tenant_b.id, email="b@test.com", dni="0", cuil="0")
+        db_session.add_all([user_a, user_b, usr_a, usr_b])
+        await db_session.flush()
 
         ctx = uuid.uuid4()
-        a_a = make_asignacion(tenant_a_id, user_a.id, test_role.id, ctx,
+        a_a = make_asignacion(tenant_a.id, user_a.id, test_role.id, ctx,
                               desde=datetime(2025, 3, 1, tzinfo=timezone.utc))
-        a_b = make_asignacion(tenant_b_id, user_b.id, test_role.id, ctx,
+        a_b = make_asignacion(tenant_b.id, user_b.id, test_role.id, ctx,
                               desde=datetime(2025, 3, 1, tzinfo=timezone.utc))
         db_session.add_all([a_a, a_b])
         await db_session.commit()
@@ -403,4 +431,4 @@ class TestTenantIsolation:
         result_a = await EquiposService.mis_equipos(db_session, user_a)
 
         assert len(result_a) == 1
-        assert result_a[0].tenant_id == tenant_a_id
+        assert result_a[0].tenant_id == tenant_a.id

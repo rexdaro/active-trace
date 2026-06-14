@@ -8,8 +8,10 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from sqlalchemy import select
 from app.models.base import Base
 from app.models.tenant import Tenant
-from app.models.user import User
+from app.models.user import User, Usuario
 from app.models.materia import Materia
+from app.models.carrera import Carrera
+from app.models.cohorte import Cohorte
 from app.models.padron import VersionPadron, EntradaPadron
 from app.models.comunicacion import Comunicacion, ComunicacionEstado
 from app.models.audit import AuditLog
@@ -48,28 +50,44 @@ async def test_tenant_with_approval(db_session):
 
 @pytest_asyncio.fixture
 async def mock_user(db_session, test_tenant):
+    uid = uuid.uuid4()
     user = User(
-        id=uuid.uuid4(),
+        id=uid,
         tenant_id=test_tenant.id,
         email="teacher@test.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
     )
-    db_session.add(user)
+    usuario = Usuario(
+        id=uid,
+        tenant_id=test_tenant.id,
+        email="teacher@test.com",
+        dni="0",
+        cuil="0",
+    )
+    db_session.add_all([user, usuario])
     await db_session.commit()
     return user
 
 
 @pytest_asyncio.fixture
 async def mock_user_approval(db_session, test_tenant_with_approval):
+    uid = uuid.uuid4()
     user = User(
-        id=uuid.uuid4(),
+        id=uid,
         tenant_id=test_tenant_with_approval.id,
         email="teacher@approval.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
     )
-    db_session.add(user)
+    usuario = Usuario(
+        id=uid,
+        tenant_id=test_tenant_with_approval.id,
+        email="teacher@approval.com",
+        dni="0",
+        cuil="0",
+    )
+    db_session.add_all([user, usuario])
     await db_session.commit()
     return user
 
@@ -91,12 +109,44 @@ async def test_materia_approval(db_session, test_tenant_with_approval):
 
 
 @pytest_asyncio.fixture
-async def test_entrada_padron(db_session, test_tenant, test_materia, mock_user):
+async def test_carrera(db_session, test_tenant):
+    carrera = Carrera(id=uuid.uuid4(), tenant_id=test_tenant.id, name="Ingeniería", code="ING", is_active=True)
+    db_session.add(carrera)
+    await db_session.commit()
+    return carrera
+
+
+@pytest_asyncio.fixture
+async def test_cohorte(db_session, test_tenant, test_carrera):
+    cohorte = Cohorte(id=uuid.uuid4(), tenant_id=test_tenant.id, name="2025", carrera_id=test_carrera.id, is_active=True)
+    db_session.add(cohorte)
+    await db_session.commit()
+    return cohorte
+
+
+@pytest_asyncio.fixture
+async def test_carrera_approval(db_session, test_tenant_with_approval):
+    carrera = Carrera(id=uuid.uuid4(), tenant_id=test_tenant_with_approval.id, name="Medicina", code="MED", is_active=True)
+    db_session.add(carrera)
+    await db_session.commit()
+    return carrera
+
+
+@pytest_asyncio.fixture
+async def test_cohorte_approval(db_session, test_tenant_with_approval, test_carrera_approval):
+    cohorte = Cohorte(id=uuid.uuid4(), tenant_id=test_tenant_with_approval.id, name="2025", carrera_id=test_carrera_approval.id, is_active=True)
+    db_session.add(cohorte)
+    await db_session.commit()
+    return cohorte
+
+
+@pytest_asyncio.fixture
+async def test_entrada_padron(db_session, test_tenant, test_materia, mock_user, test_cohorte):
     version = VersionPadron(
         id=uuid.uuid4(),
         tenant_id=test_tenant.id,
         materia_id=test_materia.id,
-        cohorte_id=uuid.uuid4(),
+        cohorte_id=test_cohorte.id,
         archivo_nombre="padron.csv",
         archivo_hash="abc123",
         origen="Archivo",
@@ -123,12 +173,12 @@ async def test_entrada_padron(db_session, test_tenant, test_materia, mock_user):
 
 
 @pytest_asyncio.fixture
-async def test_entrada_padron2(db_session, test_tenant, test_materia, mock_user):
+async def test_entrada_padron2(db_session, test_tenant, test_materia, mock_user, test_cohorte):
     version = VersionPadron(
         id=uuid.uuid4(),
         tenant_id=test_tenant.id,
         materia_id=test_materia.id,
-        cohorte_id=uuid.uuid4(),
+        cohorte_id=test_cohorte.id,
         archivo_nombre="padron.csv",
         archivo_hash="abc456",
         origen="Archivo",
@@ -155,12 +205,12 @@ async def test_entrada_padron2(db_session, test_tenant, test_materia, mock_user)
 
 
 @pytest_asyncio.fixture
-async def test_entrada_padron_approval(db_session, test_tenant_with_approval, test_materia_approval, mock_user_approval):
+async def test_entrada_padron_approval(db_session, test_tenant_with_approval, test_materia_approval, mock_user_approval, test_cohorte_approval):
     version = VersionPadron(
         id=uuid.uuid4(),
         tenant_id=test_tenant_with_approval.id,
         materia_id=test_materia_approval.id,
-        cohorte_id=uuid.uuid4(),
+        cohorte_id=test_cohorte_approval.id,
         archivo_nombre="padron.csv",
         archivo_hash="abc789",
         origen="Archivo",
@@ -193,13 +243,13 @@ async def test_entrada_padron_approval(db_session, test_tenant_with_approval, te
 class TestRepoStateMachine:
 
     @pytest.mark.asyncio
-    async def test_pendiente_to_enviando(self, db_session, test_tenant):
+    async def test_pendiente_to_enviando(self, db_session, test_tenant, mock_user, test_materia):
         repo = ComunicacionesRepository(db_session)
         c = Comunicacion(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
-            enviado_por=uuid.uuid4(),
-            materia_id=uuid.uuid4(),
+            enviado_por=mock_user.id,
+            materia_id=test_materia.id,
             destinatario="alumno@test.com",
             asunto="Test",
             cuerpo="Cuerpo",
@@ -213,13 +263,13 @@ class TestRepoStateMachine:
         assert result.estado == ComunicacionEstado.ENVIANDO.value
 
     @pytest.mark.asyncio
-    async def test_pendiente_to_cancelado(self, db_session, test_tenant):
+    async def test_pendiente_to_cancelado(self, db_session, test_tenant, mock_user, test_materia):
         repo = ComunicacionesRepository(db_session)
         c = Comunicacion(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
-            enviado_por=uuid.uuid4(),
-            materia_id=uuid.uuid4(),
+            enviado_por=mock_user.id,
+            materia_id=test_materia.id,
             destinatario="alumno@test.com",
             asunto="Test",
             cuerpo="Cuerpo",
@@ -233,13 +283,13 @@ class TestRepoStateMachine:
         assert result.estado == ComunicacionEstado.CANCELADO.value
 
     @pytest.mark.asyncio
-    async def test_pendiente_enviando_enviado_full_path(self, db_session, test_tenant):
+    async def test_pendiente_enviando_enviado_full_path(self, db_session, test_tenant, mock_user, test_materia):
         repo = ComunicacionesRepository(db_session)
         c = Comunicacion(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
-            enviado_por=uuid.uuid4(),
-            materia_id=uuid.uuid4(),
+            enviado_por=mock_user.id,
+            materia_id=test_materia.id,
             destinatario="alumno@test.com",
             asunto="Test",
             cuerpo="Cuerpo",
@@ -257,13 +307,13 @@ class TestRepoStateMachine:
         assert r2.estado == ComunicacionEstado.ENVIADO.value
 
     @pytest.mark.asyncio
-    async def test_pendiente_enviando_error_full_path(self, db_session, test_tenant):
+    async def test_pendiente_enviando_error_full_path(self, db_session, test_tenant, mock_user, test_materia):
         repo = ComunicacionesRepository(db_session)
         c = Comunicacion(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
-            enviado_por=uuid.uuid4(),
-            materia_id=uuid.uuid4(),
+            enviado_por=mock_user.id,
+            materia_id=test_materia.id,
             destinatario="alumno@test.com",
             asunto="Test",
             cuerpo="Cuerpo",
@@ -281,13 +331,13 @@ class TestRepoStateMachine:
         assert r2.estado == ComunicacionEstado.ERROR.value
 
     @pytest.mark.asyncio
-    async def test_enviando_to_cancelado_invalid(self, db_session, test_tenant):
+    async def test_enviando_to_cancelado_invalid(self, db_session, test_tenant, mock_user, test_materia):
         repo = ComunicacionesRepository(db_session)
         c = Comunicacion(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
-            enviado_por=uuid.uuid4(),
-            materia_id=uuid.uuid4(),
+            enviado_por=mock_user.id,
+            materia_id=test_materia.id,
             destinatario="alumno@test.com",
             asunto="Test",
             cuerpo="Cuerpo",
@@ -301,13 +351,13 @@ class TestRepoStateMachine:
         assert result.estado == ComunicacionEstado.CANCELADO.value
 
     @pytest.mark.asyncio
-    async def test_enviado_to_enviando_is_atomic(self, db_session, test_tenant):
+    async def test_enviado_to_enviando_is_atomic(self, db_session, test_tenant, mock_user, test_materia):
         repo = ComunicacionesRepository(db_session)
         c = Comunicacion(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
-            enviado_por=uuid.uuid4(),
-            materia_id=uuid.uuid4(),
+            enviado_por=mock_user.id,
+            materia_id=test_materia.id,
             destinatario="alumno@test.com",
             asunto="Test",
             cuerpo="Cuerpo",
@@ -321,13 +371,13 @@ class TestRepoStateMachine:
         assert result.estado == ComunicacionEstado.ENVIANDO.value
 
     @pytest.mark.asyncio
-    async def test_transition_state_wrong_state_returns_none(self, db_session, test_tenant):
+    async def test_transition_state_wrong_state_returns_none(self, db_session, test_tenant, mock_user, test_materia):
         repo = ComunicacionesRepository(db_session)
         c = Comunicacion(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
-            enviado_por=uuid.uuid4(),
-            materia_id=uuid.uuid4(),
+            enviado_por=mock_user.id,
+            materia_id=test_materia.id,
             destinatario="alumno@test.com",
             asunto="Test",
             cuerpo="Cuerpo",
@@ -340,13 +390,13 @@ class TestRepoStateMachine:
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_wrong_tenant_returns_none(self, db_session, test_tenant):
+    async def test_wrong_tenant_returns_none(self, db_session, test_tenant, mock_user, test_materia):
         repo = ComunicacionesRepository(db_session)
         c = Comunicacion(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
-            enviado_por=uuid.uuid4(),
-            materia_id=uuid.uuid4(),
+            enviado_por=mock_user.id,
+            materia_id=test_materia.id,
             destinatario="alumno@test.com",
             asunto="Test",
             cuerpo="Cuerpo",
@@ -615,7 +665,7 @@ class TestApproval:
     ):
         entrada2 = EntradaPadron(
             id=uuid.uuid4(),
-            version_id=uuid.uuid4(),
+            version_id=test_entrada_padron_approval.version_id,
             tenant_id=test_tenant_with_approval.id,
             nombre="Ana",
             apellidos="Martínez",
@@ -738,13 +788,13 @@ class TestCancel:
 
     @pytest.mark.asyncio
     async def test_cancel_from_enviando_fails(
-        self, db_session, test_tenant, mock_user
+        self, db_session, test_tenant, test_materia, mock_user
     ):
         c = Comunicacion(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
             enviado_por=mock_user.id,
-            materia_id=uuid.uuid4(),
+            materia_id=test_materia.id,
             destinatario="alumno@test.com",
             asunto="Test",
             cuerpo="Cuerpo",

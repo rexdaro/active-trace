@@ -1,16 +1,22 @@
+import os
 import pytest
 import pytest_asyncio
 import uuid
-from datetime import date
+from datetime import date, datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy import select
 from app.models.base import Base
 from app.models.tenant import Tenant
+from app.models.user import Usuario
 from app.models.materia import Materia
 from app.models.carrera import Carrera
 from app.models.cohorte import Cohorte
+from app.models.asignacion import Asignacion
+from app.models.rbac import Role
 from app.models.encuentro import SlotEncuentro, InstanciaEncuentro, EstadoInstancia
 from app.models.guardia import Guardia, EstadoGuardia
+
+os.environ.setdefault("ENCRYPTION_KEY", "test-key-32-chars-long-for-encryption!!")
 
 
 @pytest_asyncio.fixture
@@ -55,15 +61,46 @@ async def test_cohorte(db_session, test_tenant, test_carrera):
     return cohorte
 
 
+@pytest_asyncio.fixture
+async def test_usuario(db_session, test_tenant):
+    usuario = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email="u_test@t.com", dni="0", cuil="0")
+    db_session.add(usuario)
+    await db_session.commit()
+    return usuario
+
+
+@pytest_asyncio.fixture
+async def test_role(db_session):
+    role = Role(name="PROFESOR")
+    db_session.add(role)
+    await db_session.commit()
+    return role
+
+
+@pytest_asyncio.fixture
+async def test_asignacion(db_session, test_tenant, test_usuario, test_materia, test_role):
+    asignacion = Asignacion(
+        id=uuid.uuid4(),
+        tenant_id=test_tenant.id,
+        user_id=test_usuario.id,
+        role_id=test_role.id,
+        contexto_id=test_materia.id,
+        desde=datetime.now(timezone.utc),
+    )
+    db_session.add(asignacion)
+    await db_session.commit()
+    return asignacion
+
+
 class TestSlotEncuentroModel:
 
     @pytest.mark.asyncio
-    async def test_create_slot_recurrente(self, db_session, test_tenant, test_materia):
+    async def test_create_slot_recurrente(self, db_session, test_tenant, test_materia, test_usuario):
         slot = SlotEncuentro(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
             materia_id=test_materia.id,
-            creado_por=uuid.uuid4(),
+            creado_por=test_usuario.id,
             dia_semana="Lunes",
             horario="18:00–20:00",
             titulo="Clase 1",
@@ -79,12 +116,12 @@ class TestSlotEncuentroModel:
         assert slot.cant_semanas == 16
 
     @pytest.mark.asyncio
-    async def test_slot_meet_url_nullable(self, db_session, test_tenant, test_materia):
+    async def test_slot_meet_url_nullable(self, db_session, test_tenant, test_materia, test_usuario):
         slot = SlotEncuentro(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
             materia_id=test_materia.id,
-            creado_por=uuid.uuid4(),
+            creado_por=test_usuario.id,
             dia_semana="Martes",
             horario="10:00–12:00",
             titulo="Clase 2",
@@ -97,12 +134,12 @@ class TestSlotEncuentroModel:
         assert slot.meet_url is None
 
     @pytest.mark.asyncio
-    async def test_slot_with_meet_url(self, db_session, test_tenant, test_materia):
+    async def test_slot_with_meet_url(self, db_session, test_tenant, test_materia, test_usuario):
         slot = SlotEncuentro(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
             materia_id=test_materia.id,
-            creado_por=uuid.uuid4(),
+            creado_por=test_usuario.id,
             dia_semana="Miércoles",
             horario="14:00–16:00",
             titulo="Clase 3",
@@ -138,12 +175,12 @@ class TestInstanciaEncuentroModel:
         assert instancia.comentario is None
 
     @pytest.mark.asyncio
-    async def test_instancia_with_slot(self, db_session, test_tenant, test_materia):
+    async def test_instancia_with_slot(self, db_session, test_tenant, test_materia, test_usuario):
         slot = SlotEncuentro(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
             materia_id=test_materia.id,
-            creado_por=uuid.uuid4(),
+            creado_por=test_usuario.id,
             dia_semana="Lunes",
             horario="18:00–20:00",
             titulo="Clase 1",
@@ -174,12 +211,12 @@ class TestInstanciaEncuentroModel:
         assert EstadoInstancia.CANCELADO.value == "Cancelado"
 
     @pytest.mark.asyncio
-    async def test_instancia_independent_state(self, db_session, test_tenant, test_materia):
+    async def test_instancia_independent_state(self, db_session, test_tenant, test_materia, test_usuario):
         slot = SlotEncuentro(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
             materia_id=test_materia.id,
-            creado_por=uuid.uuid4(),
+            creado_por=test_usuario.id,
             dia_semana="Lunes",
             horario="18:00–20:00",
             titulo="Clase 1",
@@ -244,11 +281,11 @@ class TestInstanciaEncuentroModel:
 class TestGuardiaModel:
 
     @pytest.mark.asyncio
-    async def test_create_guardia(self, db_session, test_tenant, test_materia, test_carrera, test_cohorte):
+    async def test_create_guardia(self, db_session, test_tenant, test_materia, test_carrera, test_cohorte, test_asignacion):
         guardia = Guardia(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
-            asignacion_id=uuid.uuid4(),
+            asignacion_id=test_asignacion.id,
             materia_id=test_materia.id,
             carrera_id=test_carrera.id,
             cohorte_id=test_cohorte.id,
@@ -269,11 +306,11 @@ class TestGuardiaModel:
         assert EstadoGuardia.CANCELADA.value == "Cancelada"
 
     @pytest.mark.asyncio
-    async def test_guardia_with_comments(self, db_session, test_tenant, test_materia, test_carrera, test_cohorte):
+    async def test_guardia_with_comments(self, db_session, test_tenant, test_materia, test_carrera, test_cohorte, test_asignacion):
         guardia = Guardia(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
-            asignacion_id=uuid.uuid4(),
+            asignacion_id=test_asignacion.id,
             materia_id=test_materia.id,
             carrera_id=test_carrera.id,
             cohorte_id=test_cohorte.id,
@@ -289,11 +326,11 @@ class TestGuardiaModel:
         assert guardia.comentarios == "Se cubrió la guardia sin inconvenientes"
 
     @pytest.mark.asyncio
-    async def test_guardia_cancelada(self, db_session, test_tenant, test_materia, test_carrera, test_cohorte):
+    async def test_guardia_cancelada(self, db_session, test_tenant, test_materia, test_carrera, test_cohorte, test_asignacion):
         guardia = Guardia(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
-            asignacion_id=uuid.uuid4(),
+            asignacion_id=test_asignacion.id,
             materia_id=test_materia.id,
             carrera_id=test_carrera.id,
             cohorte_id=test_cohorte.id,

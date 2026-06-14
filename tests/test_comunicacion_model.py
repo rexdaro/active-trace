@@ -7,6 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from sqlalchemy import select
 from app.models.base import Base
 from app.models.tenant import Tenant
+from app.models.user import User, Usuario
+from app.models.materia import Materia
 from app.models.comunicacion import Comunicacion, ComunicacionEstado
 from app.core.security import encrypt, decrypt
 
@@ -31,15 +33,45 @@ async def test_tenant(db_session):
     return tenant
 
 
+@pytest_asyncio.fixture
+async def mock_user(db_session, test_tenant):
+    uid = uuid.uuid4()
+    user = User(
+        id=uid,
+        tenant_id=test_tenant.id,
+        email="teacher@test.com",
+        hashed_password="hashed",
+        is_2fa_enabled=False,
+    )
+    usuario = Usuario(
+        id=uid,
+        tenant_id=test_tenant.id,
+        email="teacher@test.com",
+        dni="0",
+        cuil="0",
+    )
+    db_session.add_all([user, usuario])
+    await db_session.commit()
+    return user
+
+
+@pytest_asyncio.fixture
+async def test_materia(db_session, test_tenant):
+    materia = Materia(id=uuid.uuid4(), tenant_id=test_tenant.id, name="Matemática", code="MAT101", is_active=True)
+    db_session.add(materia)
+    await db_session.commit()
+    return materia
+
+
 class TestComunicacionModel:
 
     @pytest.mark.asyncio
-    async def test_create_comunicacion_defaults(self, db_session, test_tenant):
+    async def test_create_comunicacion_defaults(self, db_session, test_tenant, mock_user, test_materia):
         comunicacion = Comunicacion(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
-            enviado_por=uuid.uuid4(),
-            materia_id=uuid.uuid4(),
+            enviado_por=mock_user.id,
+            materia_id=test_materia.id,
             destinatario="alumno@test.com",
             asunto="Recordatorio",
             cuerpo="Este es un recordatorio.",
@@ -52,13 +84,13 @@ class TestComunicacionModel:
         assert comunicacion.destinatario == "alumno@test.com"
 
     @pytest.mark.asyncio
-    async def test_encrypted_email(self, db_session, test_tenant):
+    async def test_encrypted_email(self, db_session, test_tenant, mock_user, test_materia):
         original_email = "alumno@test.com"
         comunicacion = Comunicacion(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
-            enviado_por=uuid.uuid4(),
-            materia_id=uuid.uuid4(),
+            enviado_por=mock_user.id,
+            materia_id=test_materia.id,
             destinatario=original_email,
             asunto="Prueba",
             cuerpo="Cuerpo de prueba.",
@@ -92,12 +124,12 @@ class TestComunicacionModel:
         assert tenant.requiere_aprobacion is False
 
     @pytest.mark.asyncio
-    async def test_lote_nullable(self, db_session, test_tenant):
+    async def test_lote_nullable(self, db_session, test_tenant, mock_user, test_materia):
         comunicacion = Comunicacion(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
-            enviado_por=uuid.uuid4(),
-            materia_id=uuid.uuid4(),
+            enviado_por=mock_user.id,
+            materia_id=test_materia.id,
             destinatario="alumno@test.com",
             asunto="Sin lote",
             cuerpo="Sin lote asociado.",
@@ -109,13 +141,13 @@ class TestComunicacionModel:
         assert comunicacion.enviado_at is None
 
     @pytest.mark.asyncio
-    async def test_set_enviado_at(self, db_session, test_tenant):
+    async def test_set_enviado_at(self, db_session, test_tenant, mock_user, test_materia):
         now = datetime.now(timezone.utc).replace(tzinfo=None)
         comunicacion = Comunicacion(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
-            enviado_por=uuid.uuid4(),
-            materia_id=uuid.uuid4(),
+            enviado_por=mock_user.id,
+            materia_id=test_materia.id,
             destinatario="alumno@test.com",
             asunto="Enviado",
             cuerpo="Enviado body.",

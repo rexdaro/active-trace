@@ -3,6 +3,7 @@ import pytest_asyncio
 import uuid
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from app.models.base import Base
+from app.models.tenant import Tenant
 from app.models.carrera import Carrera
 from app.repositories.carrera import CarreraRepository
 
@@ -20,11 +21,13 @@ async def db_session():
 @pytest.mark.asyncio
 async def test_create_carrera(db_session):
     repo = CarreraRepository(db_session)
-    tenant_id = uuid.uuid4()
-    carrera = Carrera(tenant_id=tenant_id, name="Ingeniería", code="ING")
+    tenant = Tenant(id=uuid.uuid4(), name="Test")
+    db_session.add(tenant)
+    await db_session.commit()
+    carrera = Carrera(tenant_id=tenant.id, name="Ingeniería", code="ING")
     
     created = await repo.create(carrera)
     assert created.id is not None
     assert created.name == "Ingeniería"
     assert created.code == "ING"
-    assert created.tenant_id == tenant_id
+    assert created.tenant_id == tenant.id
