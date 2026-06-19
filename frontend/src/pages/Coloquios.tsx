@@ -37,7 +37,8 @@ export default function Coloquios() {
   const [showForm, setShowForm] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
-  const canManage = user?.roles?.some((r) => r === 'COORDINADOR' || r === 'ADMIN' || r === 'PROFESOR');
+  const puedeCrear = user?.roles?.some((r) => r === 'COORDINADOR' || r === 'ADMIN');
+  const puedeImportar = user?.roles?.some((r) => r === 'COORDINADOR' || r === 'ADMIN' || r === 'PROFESOR');
 
   // Form state (matches EvaluacionCreate schema)
   const [materiaId, setMateriaId] = useState('');
@@ -131,7 +132,7 @@ export default function Coloquios() {
     <div>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1>Coloquios</h1>
-        {canManage && (
+        {puedeCrear && (
           <button className="btn btn-primary" onClick={() => { setShowForm(!showForm); resetForm(); }}>
             {showForm ? 'Cancelar' : 'Nueva convocatoria'}
           </button>
@@ -239,7 +240,7 @@ export default function Coloquios() {
                       )}
                     </td>
                     <td>
-                      {canManage && (
+                      {puedeImportar && (
                         <button
                           className="btn btn-ghost"
                           style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}

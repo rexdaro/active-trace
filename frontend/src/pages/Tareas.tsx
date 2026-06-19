@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import api from '../services/api';
+import api, { getCurrentUser, type User } from '../services/api';
 
 interface Tarea {
   id: number;
@@ -36,6 +36,9 @@ export default function Tareas() {
   const [filtroEstado, setFiltroEstado] = useState('');
   const [verTodas, setVerTodas] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  const puedeGestionarTodas = user?.roles?.some((r) => r === 'COORDINADOR' || r === 'ADMIN');
   const [nuevaDesc, setNuevaDesc] = useState('');
   const [nuevoUserId, setNuevoUserId] = useState('');
 
@@ -75,6 +78,7 @@ export default function Tareas() {
 
   // Load users for the asignar dropdown and name resolution
   useEffect(() => {
+    getCurrentUser().then(setUser).catch(() => {});
     api.get('/api/v1/usuarios')
       .then((res) => setUsers(Array.isArray(res.data) ? res.data : []))
       .catch(() => {});
@@ -181,10 +185,12 @@ export default function Tareas() {
           </select>
         </div>
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-          <input type="checkbox" checked={verTodas} onChange={(e) => setVerTodas(e.target.checked)} />
-          <span style={{ fontSize: '0.9rem' }}>Ver todas (admin)</span>
-        </label>
+        {puedeGestionarTodas && (
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+            <input type="checkbox" checked={verTodas} onChange={(e) => setVerTodas(e.target.checked)} />
+            <span style={{ fontSize: '0.9rem' }}>Ver todas (admin)</span>
+          </label>
+        )}
       </div>
 
       {showForm && (
