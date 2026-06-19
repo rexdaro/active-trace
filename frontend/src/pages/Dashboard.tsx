@@ -23,6 +23,7 @@ const ALL_ACTIONS: QuickAction[] = [
   { path: '/coloquios', label: 'Reservar coloquio', variant: 'btn-ghost', roles: ['ALUMNO'] },
   { path: '/facturas', label: 'Mis facturas', variant: 'btn-ghost', roles: ['FINANZAS', 'ADMIN'] },
   { path: '/liquidaciones', label: 'Liquidaciones', variant: 'btn-ghost', roles: ['FINANZAS', 'ADMIN'] },
+  { path: '/salarios', label: 'Grilla salarial', variant: 'btn-ghost', roles: ['FINANZAS', 'ADMIN'] },
 ];
 
 export default function Dashboard() {
