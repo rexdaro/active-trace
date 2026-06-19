@@ -219,7 +219,3 @@ La fuente de verdad del dominio vive en `knowledge-base/`:
 - `10_preguntas_abiertas.md` — decisiones de dominio pendientes
 
 La documentación técnica está en `docs/ARQUITECTURA.md`.
-
----
-
-
