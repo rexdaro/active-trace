@@ -1,6 +1,6 @@
 from app.models.base import Base
 from app.models.tenant import Tenant
-from app.models.user import User, Usuario
+from app.models.user import User  # Usuario is User (backward-compat alias)
 from app.models.asignacion import Asignacion
 from app.models.token import RefreshToken
 from app.models.rbac import Role, Permission, RolePermission

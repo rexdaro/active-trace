@@ -9,7 +9,7 @@ from fastapi import HTTPException, status
 
 from app.models.tenant import Tenant
 from app.models.materia import Materia
-from app.models.user import User, Usuario
+from app.models.user import User
 from app.models.padron import VersionPadron, EntradaPadron
 from app.repositories.padron import PadronRepository
 from app.services.audit import AuditService
@@ -128,9 +128,9 @@ class MoodleWSService:
             )
 
             email_map = {}
-            usuarios_stmt = select(Usuario).where(
-                Usuario.tenant_id == user.tenant_id,
-                Usuario.deleted_at.is_(None),
+            usuarios_stmt = select(User).where(
+                User.tenant_id == user.tenant_id,
+                User.deleted_at.is_(None),
             )
             usuarios_result = await db.execute(usuarios_stmt)
             for u in list(usuarios_result.scalars().all()):

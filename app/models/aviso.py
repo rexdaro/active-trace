@@ -43,7 +43,7 @@ class AcknowledgmentAviso(Base, TimestampMixin, TenantMixin):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     aviso_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("avisos.id", ondelete="CASCADE"), nullable=False)
-    usuario_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("usuarios.id"), nullable=False)
+    usuario_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
     confirmado_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
     __table_args__ = (

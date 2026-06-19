@@ -20,6 +20,21 @@ router = APIRouter(prefix="/api/v1/salarios", tags=["Salarios"])
 
 
 @router.get(
+    "",
+    dependencies=[Depends(check_permission("liquidaciones:configurar-salarios"))],
+)
+async def listar_salarios(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(check_permission("liquidaciones:configurar-salarios")),
+):
+    repo_base = SalarioBaseRepository(db)
+    repo_plus = SalarioPlusRepository(db)
+    bases = await repo_base.list(user.tenant_id)
+    pluses = await repo_plus.list(user.tenant_id)
+    return {"bases": bases, "pluses": pluses}
+
+
+@router.get(
     "/base",
     response_model=list[SalarioBaseResponse],
     dependencies=[Depends(check_permission("liquidaciones:configurar-salarios"))],

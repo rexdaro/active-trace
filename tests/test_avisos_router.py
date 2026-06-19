@@ -239,16 +239,10 @@ async def integration_setup(db_session):
         email="coord@test.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
-    )
-    db_session.add(user)
-    usuario = Usuario(
-        id=uid,
-        tenant_id=tenant.id,
-        email="coord@test.com",
         dni="0",
         cuil="0",
     )
-    db_session.add(usuario)
+    db_session.add(user)
 
     ur = UserRole(user_id=user.id, role_id=role.id)
     db_session.add(ur)

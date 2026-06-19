@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from sqlalchemy import select
 from app.models.base import Base
 from app.models.tenant import Tenant
-from app.models.user import Usuario, User
+from app.models.user import User
 from app.models.materia import Materia
 from app.models.carrera import Carrera
 from app.models.cohorte import Cohorte
@@ -62,15 +62,10 @@ async def mock_user(db_session, test_tenant):
         email="teacher@test.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
-    )
-    usuario = Usuario(
-        id=uid,
-        tenant_id=test_tenant.id,
-        email="teacher@test.com",
         dni="0",
         cuil="0",
     )
-    db_session.add_all([user, usuario])
+    db_session.add(user)
     await db_session.commit()
     return user
 
@@ -398,9 +393,7 @@ class TestUmbral:
         uid_b = uuid.uuid4()
         user_a = User(id=uid_a, tenant_id=test_tenant.id, email="a@test.com", hashed_password="h", is_2fa_enabled=False)
         user_b = User(id=uid_b, tenant_id=test_tenant.id, email="b@test.com", hashed_password="h", is_2fa_enabled=False)
-        usr_a = Usuario(id=uid_a, tenant_id=test_tenant.id, email="a@test.com", dni="0", cuil="0")
-        usr_b = Usuario(id=uid_b, tenant_id=test_tenant.id, email="b@test.com", dni="0", cuil="0")
-        db_session.add_all([user_a, user_b, usr_a, usr_b])
+        db_session.add_all([user_a, user_b])
         await db_session.commit()
 
         asig_a = Asignacion(id=uuid.uuid4(), tenant_id=test_tenant.id, user_id=user_a.id, role_id=role.id, contexto_id=test_materia.id, desde=datetime.now(timezone.utc))
@@ -544,9 +537,7 @@ class TestVaciadoRN04:
                       hashed_password="h", is_2fa_enabled=False)
         user2 = User(id=uid2, tenant_id=test_tenant.id, email="u2@test.com",
                       hashed_password="h", is_2fa_enabled=False)
-        usr1 = Usuario(id=uid1, tenant_id=test_tenant.id, email="u1@test.com", dni="0", cuil="0")
-        usr2 = Usuario(id=uid2, tenant_id=test_tenant.id, email="u2@test.com", dni="0", cuil="0")
-        db_session.add_all([user1, user2, usr1, usr2])
+        db_session.add_all([user1, user2])
         await db_session.commit()
 
         repo = CalificacionesRepository(db_session)
@@ -586,9 +577,7 @@ class TestVaciadoRN04:
                       hashed_password="h", is_2fa_enabled=False)
         user2 = User(id=uid2, tenant_id=test_tenant.id, email="u2@test.com",
                       hashed_password="h", is_2fa_enabled=False)
-        usr1 = Usuario(id=uid1, tenant_id=test_tenant.id, email="u1@test.com", dni="0", cuil="0")
-        usr2 = Usuario(id=uid2, tenant_id=test_tenant.id, email="u2@test.com", dni="0", cuil="0")
-        db_session.add_all([user1, user2, usr1, usr2])
+        db_session.add_all([user1, user2])
         await db_session.commit()
 
         repo = CalificacionesRepository(db_session)

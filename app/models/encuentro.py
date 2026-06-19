@@ -17,7 +17,7 @@ class SlotEncuentro(Base, TimestampMixin, TenantMixin):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     materia_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("materias.id"), nullable=False)
-    creado_por: Mapped[uuid.UUID] = mapped_column(ForeignKey("usuarios.id"), nullable=False)
+    creado_por: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
     dia_semana: Mapped[str] = mapped_column(String, nullable=False)
     horario: Mapped[str] = mapped_column(String, nullable=False)
     titulo: Mapped[str] = mapped_column(String, nullable=False)

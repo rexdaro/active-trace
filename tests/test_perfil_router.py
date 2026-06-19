@@ -13,7 +13,7 @@ from app.core.rbac import get_current_user
 from app.core.database import get_db
 from app.models.base import Base
 from app.models.tenant import Tenant
-from app.models.user import User, Usuario
+from app.models.user import User
 from app.models.user_role import UserRole
 from app.models.rbac import Role, Permission, RolePermission
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
@@ -57,22 +57,12 @@ async def integration_setup(db_session):
         tenant_id=tenant.id,
         email="user@test.com",
         hashed_password="hashed",
-        is_2fa_enabled=False,
+        nombre="Original Nombre",
+        dni="12345678",
+        cuil="20-12345678-9",
+        cbu="0000003100000000000001",
     )
     db_session.add(user)
-
-    import app.core.security as sec
-    key = os.environ.get("ENCRYPTION_KEY", "dev-key")
-    usuario = Usuario(
-        id=user.id,
-        tenant_id=tenant.id,
-        nombre="Original Nombre",
-    )
-    usuario._email = sec.encrypt("user@test.com", key)
-    usuario._dni = sec.encrypt("12345678", key)
-    usuario._cuil = sec.encrypt("20-12345678-9", key)
-    usuario._cbu = sec.encrypt("0000003100000000000001", key)
-    db_session.add(usuario)
     await db_session.commit()
 
     app = FastAPI()
@@ -88,14 +78,14 @@ async def integration_setup(db_session):
     app.dependency_overrides[get_db] = override_get_db
 
     client = TestClient(app)
-    return client, tenant, user, usuario, db_session
+    return client, tenant, user, db_session
 
 
 class TestPerfilRouterIntegration:
 
     @pytest.mark.asyncio
     async def test_get_perfil(self, integration_setup):
-        client, tenant, user, usuario, db = integration_setup
+        client, tenant, user, db = integration_setup
         response = client.get("/api/v1/perfil", headers={"Authorization": "Bearer test-token"})
         assert response.status_code == 200
         data = response.json()
@@ -107,7 +97,7 @@ class TestPerfilRouterIntegration:
 
     @pytest.mark.asyncio
     async def test_update_perfil_ok(self, integration_setup):
-        client, tenant, user, usuario, db = integration_setup
+        client, tenant, user, db = integration_setup
         payload = {
             "nombre": "Nuevo Nombre",
             "datos_fiscales": "Monotributista",
@@ -129,7 +119,7 @@ class TestPerfilRouterIntegration:
 
     @pytest.mark.asyncio
     async def test_update_perfil_cuil_rechazado(self, integration_setup):
-        client, tenant, user, usuario, db = integration_setup
+        client, tenant, user, db = integration_setup
         payload = {"cuil": "99-99999999-9"}
         response = client.put(
             "/api/v1/perfil",
@@ -141,7 +131,7 @@ class TestPerfilRouterIntegration:
 
     @pytest.mark.asyncio
     async def test_update_perfil_extra_fields_forbidden(self, integration_setup):
-        client, tenant, user, usuario, db = integration_setup
+        client, tenant, user, db = integration_setup
         payload = {"nombre": "Test", "extra_field": "should_fail"}
         response = client.put(
             "/api/v1/perfil",

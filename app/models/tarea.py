@@ -18,7 +18,7 @@ class Tarea(Base, TimestampMixin, TenantMixin):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     materia_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("materias.id"), nullable=True)
-    asignado_a: Mapped[uuid.UUID] = mapped_column(ForeignKey("usuarios.id"), nullable=False)
+    asignado_a: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
     asignado_por: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
     estado: Mapped[str] = mapped_column(String, nullable=False, default=EstadoTarea.PENDIENTE.value)
     descripcion: Mapped[str] = mapped_column(Text, nullable=False)

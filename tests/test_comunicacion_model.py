@@ -42,15 +42,10 @@ async def mock_user(db_session, test_tenant):
         email="teacher@test.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
-    )
-    usuario = Usuario(
-        id=uid,
-        tenant_id=test_tenant.id,
-        email="teacher@test.com",
         dni="0",
         cuil="0",
     )
-    db_session.add_all([user, usuario])
+    db_session.add(user)
     await db_session.commit()
     return user
 

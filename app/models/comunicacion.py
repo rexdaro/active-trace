@@ -21,7 +21,7 @@ class Comunicacion(Base, TimestampMixin, TenantMixin):
     __tablename__ = "comunicaciones"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    enviado_por: Mapped[uuid.UUID] = mapped_column(ForeignKey("usuarios.id"), nullable=False)
+    enviado_por: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
     materia_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("materias.id"), nullable=False)
     _destinatario: Mapped[str] = mapped_column("destinatario", String, nullable=False)
     asunto: Mapped[str] = mapped_column(String, nullable=False)

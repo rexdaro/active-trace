@@ -6,7 +6,6 @@ from sqlalchemy import select, update, or_, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 from app.models.asignacion import Asignacion
-from app.models.user import Usuario
 from app.models.rbac import Role
 from app.models.user import User
 from app.schemas.equipos import (
@@ -225,7 +224,7 @@ class EquiposService:
         ])
 
         for a in asignaciones:
-            usuario = await db.get(Usuario, a.user_id)
+            usuario = await db.get(User, a.user_id)
             role = await db.get(Role, a.role_id)
             now = datetime.now(timezone.utc)
             if a.hasta is None:

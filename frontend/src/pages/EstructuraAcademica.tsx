@@ -2,23 +2,21 @@ import { useEffect, useState } from 'react';
 import api from '../services/api';
 
 interface Carrera {
-  id: number;
-  nombre: string;
-  codigo?: string;
+  id: string;
+  name: string;
+  code: string;
 }
 
 interface Cohorte {
-  id: number;
-  nombre: string;
-  anio: number;
-  carrera_id: number;
+  id: string;
+  name: string;
+  carrera_id: string;
 }
 
 interface Materia {
-  id: number;
-  nombre: string;
-  codigo?: string;
-  carrera_id?: number;
+  id: string;
+  name: string;
+  code: string;
 }
 
 export default function EstructuraAcademica() {
@@ -31,10 +29,9 @@ export default function EstructuraAcademica() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const [editId, setEditId] = useState<number | null>(null);
-  const [formNombre, setFormNombre] = useState('');
-  const [formCodigo, setFormCodigo] = useState('');
-  const [formAnio, setFormAnio] = useState('');
+  const [editId, setEditId] = useState<string | null>(null);
+  const [formName, setFormName] = useState('');
+  const [formCode, setFormCode] = useState('');
   const [formCarreraId, setFormCarreraId] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -81,44 +78,24 @@ export default function EstructuraAcademica() {
 
   function resetForm() {
     setEditId(null);
-    setFormNombre('');
-    setFormCodigo('');
-    setFormAnio('');
+    setFormName('');
+    setFormCode('');
     setFormCarreraId('');
   }
 
-  function startEdit(item: Carrera | Cohorte | Materia, type: string) {
+  function startEdit(item: Carrera | Cohorte | Materia) {
     setEditId(item.id);
-    setFormNombre(item.nombre);
-    if (type === 'carrera') {
-      setFormCodigo((item as Carrera).codigo || '');
-    } else if (type === 'cohorte') {
-      setFormAnio(String((item as Cohorte).anio));
-      setFormCarreraId(String((item as Cohorte).carrera_id));
-    } else if (type === 'materia') {
-      setFormCodigo((item as Materia).codigo || '');
-      setFormCarreraId(String((item as Materia).carrera_id || ''));
-    }
-  }
-
-  function getApiBase(): string {
-    if (activeTab === 'cohortes') return '/api/cohortes';
-    return `/api/${activeTab}`;
+    setFormName(item.name);
+    if ('code' in item) setFormCode(item.code);
+    if ('carrera_id' in item) setFormCarreraId((item as Cohorte).carrera_id);
   }
 
   function getPayload(): Record<string, unknown> {
-    const payload: Record<string, unknown> = { nombre: formNombre };
     if (activeTab === 'carreras' || activeTab === 'materias') {
-      payload.codigo = formCodigo;
+      return { name: formName, code: formCode };
     }
-    if (activeTab === 'cohortes') {
-      payload.anio = Number(formAnio);
-      payload.carrera_id = Number(selectedCarreraId || formCarreraId);
-    }
-    if (activeTab === 'materias' && formCarreraId) {
-      payload.carrera_id = Number(formCarreraId);
-    }
-    return payload;
+    // cohortes
+    return { name: formName, carrera_id: formCarreraId || selectedCarreraId };
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -127,7 +104,7 @@ export default function EstructuraAcademica() {
     setError(null);
     setSuccess(null);
     try {
-      const base = getApiBase();
+      const base = activeTab === 'cohortes' ? '/api/cohortes' : `/api/${activeTab}`;
       const payload = getPayload();
       if (editId) {
         await api.put(`${base}/${editId}`, payload);
@@ -147,12 +124,12 @@ export default function EstructuraAcademica() {
     }
   }
 
-  async function handleDelete(id: number) {
+  async function handleDelete(id: string) {
     if (!confirm('¿Confirmás eliminar?')) return;
     setError(null);
     setSuccess(null);
     try {
-      const base = getApiBase();
+      const base = activeTab === 'cohortes' ? '/api/cohortes' : `/api/${activeTab}`;
       await api.delete(`${base}/${id}`);
       setSuccess('Eliminado correctamente');
       if (activeTab === 'carreras') loadCarreras();
@@ -188,7 +165,7 @@ export default function EstructuraAcademica() {
           <select value={selectedCarreraId} onChange={(e) => setSelectedCarreraId(e.target.value)} style={{ maxWidth: '400px' }}>
             <option value="">Seleccionar carrera...</option>
             {carreras.map((c) => (
-              <option key={c.id} value={c.id}>{c.nombre}</option>
+              <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
         </div>
@@ -201,40 +178,21 @@ export default function EstructuraAcademica() {
         <form onSubmit={handleSave} style={{ maxWidth: '500px' }}>
           <div style={{ marginBottom: '1rem' }}>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Nombre</label>
-            <input type="text" value={formNombre} onChange={(e) => setFormNombre(e.target.value)} required />
+            <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} required />
           </div>
           {(activeTab === 'carreras' || activeTab === 'materias') && (
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Código</label>
-              <input type="text" value={formCodigo} onChange={(e) => setFormCodigo(e.target.value)} />
+              <input type="text" value={formCode} onChange={(e) => setFormCode(e.target.value)} />
             </div>
           )}
           {activeTab === 'cohortes' && (
-            <>
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Año</label>
-                <input type="number" value={formAnio} onChange={(e) => setFormAnio(e.target.value)} required style={{ maxWidth: '200px' }} />
-              </div>
-              {!selectedCarreraId && (
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Carrera</label>
-                  <select value={formCarreraId} onChange={(e) => setFormCarreraId(e.target.value)} required>
-                    <option value="">Seleccionar carrera...</option>
-                    {carreras.map((c) => (
-                      <option key={c.id} value={c.id}>{c.nombre}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </>
-          )}
-          {activeTab === 'materias' && (
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Carrera</label>
-              <select value={formCarreraId} onChange={(e) => setFormCarreraId(e.target.value)}>
-                <option value="">Sin carrera</option>
+              <select value={formCarreraId || selectedCarreraId} onChange={(e) => setFormCarreraId(e.target.value)} required>
+                <option value="">Seleccionar carrera...</option>
                 {carreras.map((c) => (
-                  <option key={c.id} value={c.id}>{c.nombre}</option>
+                  <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
             </div>
@@ -266,23 +224,19 @@ export default function EstructuraAcademica() {
                   <tr>
                     <th>Nombre</th>
                     {(activeTab === 'carreras' || activeTab === 'materias') && <th>Código</th>}
-                    {activeTab === 'cohortes' && <th>Año</th>}
                     {activeTab === 'cohortes' && <th>Carrera ID</th>}
-                    {activeTab === 'materias' && <th>Carrera ID</th>}
                     <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {items.map((item) => (
                     <tr key={item.id}>
-                      <td>{item.nombre}</td>
-                      {(activeTab === 'carreras' || activeTab === 'materias') && <td>{(item as Carrera | Materia).codigo || '—'}</td>}
-                      {activeTab === 'cohortes' && <td>{(item as Cohorte).anio}</td>}
+                      <td>{item.name}</td>
+                      {(activeTab === 'carreras' || activeTab === 'materias') && <td>{(item as Carrera | Materia).code || '—'}</td>}
                       {activeTab === 'cohortes' && <td>{(item as Cohorte).carrera_id}</td>}
-                      {activeTab === 'materias' && <td>{(item as Materia).carrera_id || '—'}</td>}
                       <td>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <button className="btn btn-ghost" onClick={() => startEdit(item, activeTab)}>Editar</button>
+                          <button className="btn btn-ghost" onClick={() => startEdit(item)}>Editar</button>
                           <button className="btn btn-danger" onClick={() => handleDelete(item.id)}>Eliminar</button>
                         </div>
                       </td>

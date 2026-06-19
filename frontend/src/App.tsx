@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
-import Login from './pages/Login'
+import AuthPage from './pages/Login'
 import ProtectedRoute from './components/ProtectedRoute'
+import RoleRoute from './components/RoleRoute'
 import AppLayout from './components/AppLayout'
 import Dashboard from './pages/Dashboard'
 import Calificaciones from './pages/Calificaciones'
@@ -21,24 +22,54 @@ import Usuarios from './pages/Usuarios'
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={<AuthPage />} />
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/calificaciones" element={<Calificaciones />} />
-          <Route path="/atrasados" element={<Atrasados />} />
-          <Route path="/comunicaciones" element={<Comunicaciones />} />
-          <Route path="/equipos" element={<EquiposDocentes />} />
+
+          {/* Coloquios — reserva y gestión */}
+          <Route element={<RoleRoute roles={['ALUMNO', 'PROFESOR', 'COORDINADOR', 'ADMIN']} />}>
+            <Route path="/coloquios" element={<Coloquios />} />
+          </Route>
+
+          {/* PROFESOR / TUTOR */}
+          <Route element={<RoleRoute roles={['PROFESOR', 'TUTOR', 'COORDINADOR', 'ADMIN']} />}>
+            <Route path="/calificaciones" element={<Calificaciones />} />
+            <Route path="/atrasados" element={<Atrasados />} />
+            <Route path="/tareas" element={<Tareas />} />
+            <Route path="/encuentros" element={<Encuentros />} />
+          </Route>
+
+          {/* PROFESOR / COORDINADOR / ADMIN */}
+          <Route element={<RoleRoute roles={['PROFESOR', 'COORDINADOR', 'ADMIN']} />}>
+            <Route path="/comunicaciones" element={<Comunicaciones />} />
+          </Route>
+
+          {/* COORDINADOR / ADMIN */}
+          <Route element={<RoleRoute roles={['COORDINADOR', 'ADMIN']} />}>
+            <Route path="/equipos" element={<EquiposDocentes />} />
+          </Route>
+
+          {/* FINANZAS / ADMIN */}
+          <Route element={<RoleRoute roles={['FINANZAS', 'ADMIN']} />}>
+            <Route path="/liquidaciones" element={<Liquidaciones />} />
+            <Route path="/facturas" element={<Facturas />} />
+            <Route path="/salarios" element={<Salarios />} />
+          </Route>
+
+          {/* AUDITORIA */}
+          <Route element={<RoleRoute roles={['COORDINADOR', 'ADMIN', 'FINANZAS']} />}>
+            <Route path="/auditoria" element={<Auditoria />} />
+          </Route>
+
+          {/* ADMIN only */}
+          <Route element={<RoleRoute roles={['ADMIN']} />}>
+            <Route path="/estructura" element={<EstructuraAcademica />} />
+            <Route path="/usuarios" element={<Usuarios />} />
+          </Route>
+
+          {/* All authenticated — avisos */}
           <Route path="/avisos" element={<Avisos />} />
-          <Route path="/tareas" element={<Tareas />} />
-          <Route path="/encuentros" element={<Encuentros />} />
-          <Route path="/coloquios" element={<Coloquios />} />
-          <Route path="/liquidaciones" element={<Liquidaciones />} />
-          <Route path="/facturas" element={<Facturas />} />
-          <Route path="/salarios" element={<Salarios />} />
-          <Route path="/estructura" element={<EstructuraAcademica />} />
-          <Route path="/auditoria" element={<Auditoria />} />
-          <Route path="/usuarios" element={<Usuarios />} />
         </Route>
       </Route>
     </Routes>

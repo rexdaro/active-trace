@@ -160,7 +160,8 @@ async def test_usuario(db_session, test_tenant):
     usuario = Usuario(
         id=uuid.uuid4(),
         tenant_id=test_tenant.id,
-        _email="docente@test.com",
+        email="docente@test.com",
+        hashed_password="x",
         _dni="11111111",
         _cuil="20-11111111-9",
     )
@@ -321,7 +322,8 @@ class TestUpdateTareaService:
         otro_usuario = Usuario(
             id=uuid.uuid4(),
             tenant_id=test_tenant.id,
-            _email="otro@test.com",
+            email="otro@test.com",
+            hashed_password="x",
             _dni="22222222",
             _cuil="20-22222222-9",
         )
@@ -372,7 +374,7 @@ class TestUpdateTareaService:
 
     @pytest.mark.asyncio
     async def test_update_tarea_audit_delegar(self, db_session, test_tenant, coordinador_user, test_usuario):
-        otro = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, _email="otro2@test.com", _dni="33333333", _cuil="20-33333333-9")
+        otro = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email="otro2@test.com", hashed_password="x", _dni="33333333", _cuil="20-33333333-9")
         db_session.add(otro)
         await db_session.commit()
 
@@ -472,7 +474,7 @@ class TestListTareasService:
     async def test_list_mis_tareas(self, db_session, test_tenant, profesor_user, test_usuario):
         otro_usuario = Usuario(
             id=uuid.uuid4(), tenant_id=test_tenant.id,
-            _email="other@test.com", _dni="99999999", _cuil="20-99999999-9",
+            email="other@test.com", hashed_password="x", _dni="99999999", _cuil="20-99999999-9",
         )
         db_session.add(otro_usuario)
         await db_session.flush()

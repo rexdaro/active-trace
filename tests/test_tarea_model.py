@@ -35,7 +35,8 @@ async def test_usuario(db_session, test_tenant):
     usuario = Usuario(
         id=uuid.uuid4(),
         tenant_id=test_tenant.id,
-        _email="user@test.com",
+        email="user@test.com",
+        hashed_password="x",
         _dni="12345678",
         _cuil="20-12345678-9",
     )
@@ -49,7 +50,8 @@ async def test_usuario2(db_session, test_tenant):
     usuario = Usuario(
         id=uuid.uuid4(),
         tenant_id=test_tenant.id,
-        _email="user2@test.com",
+        email="user2@test.com",
+        hashed_password="x",
         _dni="87654321",
         _cuil="20-87654321-9",
     )

@@ -9,8 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import openpyxl
 
 from app.repositories.padron import PadronRepository
-from app.models.padron import EntradaPadron
-from app.models.user import Usuario
+from app.models.padron import EntradaPadron, VersionPadron
 from app.models.user import User
 from app.services.audit import AuditService
 
@@ -135,7 +134,7 @@ class PadronService:
 
     @staticmethod
     async def _get_usuarios_by_emails(db: AsyncSession, tenant_id: uuid.UUID) -> dict[str, uuid.UUID]:
-        stmt = select(Usuario).where(Usuario.tenant_id == tenant_id, Usuario.deleted_at.is_(None))
+        stmt = select(User).where(User.tenant_id == tenant_id, User.deleted_at.is_(None))
         result = await db.execute(stmt)
         usuarios = list(result.scalars().all())
         return {u.email: u.id for u in usuarios}
@@ -225,6 +224,30 @@ class PadronService:
             )
 
         return {"eliminadas": eliminadas}
+
+    @staticmethod
+    @staticmethod
+    async def get_alumnos_by_materia(db: AsyncSession, materia_id: uuid.UUID, user: User) -> list[dict]:
+        stmt = (
+            select(EntradaPadron)
+            .join(VersionPadron, EntradaPadron.version_id == VersionPadron.id)
+            .where(
+                VersionPadron.materia_id == materia_id,
+                VersionPadron.activa == True,
+                VersionPadron.tenant_id == user.tenant_id,
+            )
+        )
+        result = await db.execute(stmt)
+        entradas = result.scalars().all()
+        return [
+            {
+                "id": str(e.id),
+                "nombre": e.nombre,
+                "apellidos": e.apellidos,
+                "email": e.email,
+            }
+            for e in entradas
+        ]
 
     @staticmethod
     async def get_versiones(db: AsyncSession, materia_id: uuid.UUID, user: User) -> list:

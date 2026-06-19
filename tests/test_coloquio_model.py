@@ -60,7 +60,8 @@ async def test_user(db_session, test_tenant):
     user = Usuario(
         id=uuid.uuid4(),
         tenant_id=test_tenant.id,
-        _email="alumno@test.com",
+        email="alumno@test.com",
+        hashed_password="x",
         _dni="12345678",
         _cuil="20-12345678-9",
     )

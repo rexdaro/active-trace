@@ -249,11 +249,11 @@ async def integration_setup(db_session):
     ur = UserRole(user_id=user.id, role_id=role.id)
     db_session.add(ur)
 
-    # Create a Usuario for the assigned person (same ID as user for testing)
-    usuario = Usuario(
-        id=user.id,
+    usuario = User(
+        id=uuid.uuid4(),
         tenant_id=tenant.id,
-        _email="docente@test.com",
+        email="docente@test.com",
+        hashed_password="x",
         _dni="11111111",
         _cuil="20-11111111-9",
     )

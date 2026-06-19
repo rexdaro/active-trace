@@ -13,11 +13,14 @@ interface Metricas {
 }
 
 interface LogEntry {
-  id: number;
-  usuario: string;
-  accion: string;
-  materia_id?: number;
-  detalle?: string;
+  id: string;
+  action: string;
+  actor_id: string | null;
+  user_id: string | null;
+  resource: string | null;
+  status: string | null;
+  materia_id: string | null;
+  detalle?: string | Record<string, unknown>;
   created_at: string;
 }
 
@@ -115,7 +118,7 @@ export default function Auditoria() {
 
               <div className="card">
                 <h2 style={{ marginBottom: '1rem' }}>Últimas acciones</h2>
-                {metricas.ultimasAcciones.length > 0 ? (
+                {(metricas.ultimasAcciones?.length ?? 0) > 0 ? (
                   <div style={{ overflowX: 'auto' }}>
                     <table>
                       <thead>
@@ -196,9 +199,9 @@ export default function Auditoria() {
                     <tbody>
                       {logs.map((l) => (
                         <tr key={l.id}>
-                          <td>{l.usuario}</td>
-                          <td>{l.accion}</td>
-                          <td>{l.detalle || '—'}</td>
+                          <td>{l.actor_id || l.user_id || '—'}</td>
+                          <td>{l.action}{l.resource ? ` — ${l.resource}` : ''}</td>
+                          <td>{l.detalle && typeof l.detalle === 'object' ? (Object.keys(l.detalle).length > 0 ? JSON.stringify(l.detalle) : '—') : l.detalle || '—'}</td>
                           <td>{l.materia_id || '—'}</td>
                           <td>{new Date(l.created_at).toLocaleString()}</td>
                         </tr>

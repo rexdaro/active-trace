@@ -12,7 +12,7 @@ from app.core.rbac import get_current_user
 from app.core.database import get_db
 from app.models.base import Base
 from app.models.tenant import Tenant
-from app.models.user import User, Usuario
+from app.models.user import User
 from app.models.mensaje_interno import MensajeInterno
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy import select
@@ -61,6 +61,9 @@ async def integration_setup(db_session):
     tenant = Tenant(id=uuid.uuid4(), name="Test Tenant")
     db_session.add(tenant)
 
+    import app.core.security as sec
+    key = os.environ.get("ENCRYPTION_KEY", "dev-key")
+
     user_a = User(
         id=uuid.uuid4(),
         tenant_id=tenant.id,
@@ -68,6 +71,8 @@ async def integration_setup(db_session):
         hashed_password="hashed",
         is_2fa_enabled=False,
     )
+    user_a._dni = sec.encrypt("11111111", key)
+    user_a._cuil = sec.encrypt("20-11111111-1", key)
     db_session.add(user_a)
 
     user_b = User(
@@ -77,27 +82,9 @@ async def integration_setup(db_session):
         hashed_password="hashed",
         is_2fa_enabled=False,
     )
+    user_b._dni = sec.encrypt("22222222", key)
+    user_b._cuil = sec.encrypt("20-22222222-2", key)
     db_session.add(user_b)
-
-    import app.core.security as sec
-    key = os.environ.get("ENCRYPTION_KEY", "dev-key")
-    usuario_a = Usuario(
-        id=user_a.id,
-        tenant_id=tenant.id,
-    )
-    usuario_a._email = sec.encrypt("user_a@test.com", key)
-    usuario_a._dni = sec.encrypt("11111111", key)
-    usuario_a._cuil = sec.encrypt("20-11111111-1", key)
-    db_session.add(usuario_a)
-
-    usuario_b = Usuario(
-        id=user_b.id,
-        tenant_id=tenant.id,
-    )
-    usuario_b._email = sec.encrypt("user_b@test.com", key)
-    usuario_b._dni = sec.encrypt("22222222", key)
-    usuario_b._cuil = sec.encrypt("20-22222222-2", key)
-    db_session.add(usuario_b)
 
     await db_session.commit()
 

@@ -5,17 +5,18 @@ interface SalarioBase {
   id: number;
   rol: string;
   monto: number;
-  vigencia_desde: string;
-  vigencia_hasta: string;
+  desde: string;
+  hasta: string;
 }
 
 interface SalarioPlus {
   id: number;
   grupo: string;
   rol: string;
+  descripcion: string;
   monto: number;
-  vigencia_desde: string;
-  vigencia_hasta: string;
+  desde: string;
+  hasta: string;
 }
 
 export default function Salarios() {
@@ -35,6 +36,7 @@ export default function Salarios() {
   // Plus form
   const [plusGrupo, setPlusGrupo] = useState('');
   const [plusRol, setPlusRol] = useState('');
+  const [plusDescripcion, setPlusDescripcion] = useState('');
   const [plusMonto, setPlusMonto] = useState('');
   const [plusDesde, setPlusDesde] = useState('');
   const [plusHasta, setPlusHasta] = useState('');
@@ -69,8 +71,8 @@ export default function Salarios() {
       await api.post('/api/v1/salarios/base', {
         rol: baseRol,
         monto: Number(baseMonto),
-        vigencia_desde: baseDesde,
-        vigencia_hasta: baseHasta || null,
+        desde: baseDesde,
+        hasta: baseHasta || null,
       });
       setSuccess('Salario base creado correctamente');
       setBaseRol('');
@@ -94,13 +96,15 @@ export default function Salarios() {
       await api.post('/api/v1/salarios/plus', {
         grupo: plusGrupo,
         rol: plusRol,
+        descripcion: plusDescripcion,
         monto: Number(plusMonto),
-        vigencia_desde: plusDesde,
-        vigencia_hasta: plusHasta || null,
+        desde: plusDesde,
+        hasta: plusHasta || null,
       });
       setSuccess('Plus salarial creado correctamente');
       setPlusGrupo('');
       setPlusRol('');
+      setPlusDescripcion('');
       setPlusMonto('');
       setPlusDesde('');
       setPlusHasta('');
@@ -177,8 +181,8 @@ export default function Salarios() {
                       <tr key={b.id}>
                         <td>{b.rol}</td>
                         <td>${b.monto.toLocaleString()}</td>
-                        <td>{b.vigencia_desde}</td>
-                        <td>{b.vigencia_hasta || '—'}</td>
+                        <td>{b.desde}</td>
+                        <td>{b.hasta || '—'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -203,6 +207,10 @@ export default function Salarios() {
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Rol</label>
                 <input type="text" value={plusRol} onChange={(e) => setPlusRol(e.target.value)} placeholder="Ej: Profesor Titular" required />
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Descripción</label>
+                <input type="text" value={plusDescripcion} onChange={(e) => setPlusDescripcion(e.target.value)} placeholder="Ej: Plus por antigüedad" required />
               </div>
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Monto</label>
@@ -231,6 +239,7 @@ export default function Salarios() {
                     <tr>
                       <th>Grupo</th>
                       <th>Rol</th>
+                      <th>Descripción</th>
                       <th>Monto</th>
                       <th>Vigencia desde</th>
                       <th>Vigencia hasta</th>
@@ -241,9 +250,10 @@ export default function Salarios() {
                       <tr key={p.id}>
                         <td>{p.grupo}</td>
                         <td>{p.rol}</td>
+                        <td>{p.descripcion}</td>
                         <td>${p.monto.toLocaleString()}</td>
-                        <td>{p.vigencia_desde}</td>
-                        <td>{p.vigencia_hasta || '—'}</td>
+                        <td>{p.desde}</td>
+                        <td>{p.hasta || '—'}</td>
                       </tr>
                     ))}
                   </tbody>

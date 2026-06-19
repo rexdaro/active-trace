@@ -27,9 +27,36 @@ from app.routers.liquidaciones import router as liquidaciones_router
 from app.routers.facturas import router as facturas_router
 from app.routers.auditoria import router as auditoria_router
 from app.routers.perfil import router as perfil_router
+from app.routers.usuarios import router as usuarios_router
 from app.routers.inbox import router as inbox_router
 from app.middleware.audit import AuditLogMiddleware
+from starlette.middleware.cors import CORSMiddleware
 from app.workers.comunicaciones import start_worker
+from app.core.database import engine as db_engine
+from sqlalchemy import text as sa_text
+
+
+async def run_migration():
+    """Add missing columns for dev (SQLite doesn't support IF NOT EXISTS in ALTER)."""
+    try:
+        async with db_engine.connect() as conn:
+            await conn.execute(sa_text("ALTER TABLE users ADD COLUMN activo BOOLEAN DEFAULT 1 NOT NULL"))
+            await conn.commit()
+    except Exception:
+        pass  # Column already exists
+
+    try:
+        async with db_engine.connect() as conn:
+            await conn.execute(sa_text("ALTER TABLE facturas ADD COLUMN fecha DATE DEFAULT '2025-01-01' NOT NULL"))
+            await conn.commit()
+    except Exception:
+        pass
+    try:
+        async with db_engine.connect() as conn:
+            await conn.execute(sa_text("ALTER TABLE facturas ADD COLUMN monto NUMERIC(12,2) DEFAULT 0 NOT NULL"))
+            await conn.commit()
+    except Exception:
+        pass
 
 try:
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -39,6 +66,7 @@ except ImportError:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await run_migration()
     worker_task = start_worker(app)
     yield
     worker_task.cancel()
@@ -49,14 +77,21 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.add_middleware(AuditLogMiddleware)
 
 app.include_router(health_router, prefix="/health", tags=["health"])
-app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 app.include_router(admin_router)
 app.include_router(asignaciones_router)
-app.include_router(carreras_router, prefix="/api/carreras")
-app.include_router(cohortes_router, prefix="/api/cohortes")
+app.include_router(carreras_router)
+app.include_router(cohortes_router)
 app.include_router(materias_router, prefix="/api/materias")
 app.include_router(equipos_router)
 app.include_router(padron_router)
@@ -75,6 +110,7 @@ app.include_router(liquidaciones_router)
 app.include_router(facturas_router)
 app.include_router(auditoria_router)
 app.include_router(perfil_router)
+app.include_router(usuarios_router)
 app.include_router(inbox_router)
 
 if FastAPIInstrumentor:

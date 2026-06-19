@@ -2,29 +2,56 @@ import { useEffect, useState } from 'react';
 import api from '../services/api';
 
 interface Aviso {
-  id: number;
+  id: string;
   titulo: string;
-  contenido: string;
+  cuerpo: string;
   alcance: string;
-  filtro_id: number | null;
+  materia_id: string | null;
+  cohorte_id: string | null;
+  rol_destino: string | null;
+  severidad: string;
+  inicio_en: string;
+  fin_en: string;
+  orden: number;
+  activo: boolean;
+  requiere_ack: boolean;
   created_at: string;
-  confirmacion_lectura: number;
+  updated_at: string;
 }
 
 interface AvisoForm {
   titulo: string;
-  contenido: string;
+  cuerpo: string;
   alcance: string;
-  filtro_id: string;
+  severidad: string;
+  inicio_en: string;
+  fin_en: string;
+  activo: boolean;
+  requiere_ack: boolean;
 }
 
 const alcances = ['Global', 'PorMateria', 'PorCohorte', 'PorRol'];
+const severidades = ['Info', 'Advertencia', 'Crítico'];
+
+function toDatetimeLocal(iso: string) {
+  if (!iso) return '';
+  return iso.slice(0, 16);
+}
+
+function toISOString(local: string) {
+  if (!local) return '';
+  return new Date(local).toISOString();
+}
 
 const emptyForm: AvisoForm = {
   titulo: '',
-  contenido: '',
+  cuerpo: '',
   alcance: 'Global',
-  filtro_id: '',
+  severidad: 'Info',
+  inicio_en: '',
+  fin_en: '',
+  activo: true,
+  requiere_ack: false,
 };
 
 export default function Avisos() {
@@ -54,9 +81,13 @@ export default function Avisos() {
     setEditing(a);
     setForm({
       titulo: a.titulo,
-      contenido: a.contenido,
+      cuerpo: a.cuerpo,
       alcance: a.alcance,
-      filtro_id: a.filtro_id?.toString() || '',
+      severidad: a.severidad,
+      inicio_en: toDatetimeLocal(a.inicio_en),
+      fin_en: toDatetimeLocal(a.fin_en),
+      activo: a.activo,
+      requiere_ack: a.requiere_ack,
     });
     setShowForm(true);
   }
@@ -64,12 +95,22 @@ export default function Avisos() {
   async function handleSave() {
     setError(null);
     setSuccess(null);
+
+    if (!form.titulo.trim()) return setError('El título es requerido');
+    if (!form.cuerpo.trim()) return setError('El cuerpo es requerido');
+    if (!form.inicio_en) return setError('La fecha de inicio es requerida');
+    if (!form.fin_en) return setError('La fecha de fin es requerida');
+
     try {
       const payload = {
         titulo: form.titulo,
-        contenido: form.contenido,
+        cuerpo: form.cuerpo,
         alcance: form.alcance,
-        filtro_id: form.filtro_id ? Number(form.filtro_id) : null,
+        severidad: form.severidad,
+        inicio_en: toISOString(form.inicio_en),
+        fin_en: toISOString(form.fin_en),
+        activo: form.activo,
+        requiere_ack: form.requiere_ack,
       };
 
       if (editing) {
@@ -88,7 +129,7 @@ export default function Avisos() {
     }
   }
 
-  async function handleDelete(id: number) {
+  async function handleDelete(id: string) {
     if (!confirm('¿Eliminar este aviso?')) return;
     try {
       await api.delete(`/api/v1/avisos/${id}`);
@@ -126,7 +167,7 @@ export default function Avisos() {
 
           <div style={{ marginBottom: '0.75rem' }}>
             <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 600, fontSize: '0.85rem' }}>
-              Título
+              Título *
             </label>
             <input
               type="text"
@@ -138,17 +179,17 @@ export default function Avisos() {
 
           <div style={{ marginBottom: '0.75rem' }}>
             <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 600, fontSize: '0.85rem' }}>
-              Contenido
+              Cuerpo *
             </label>
             <textarea
-              value={form.contenido}
-              onChange={(e) => setForm((f) => ({ ...f, contenido: e.target.value }))}
+              value={form.cuerpo}
+              onChange={(e) => setForm((f) => ({ ...f, cuerpo: e.target.value }))}
               rows={4}
               placeholder="Contenido del aviso"
             />
           </div>
 
-          <div style={{ marginBottom: '0.75rem', display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+          <div style={{ marginBottom: '0.75rem', display: 'flex', gap: '1rem' }}>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 600, fontSize: '0.85rem' }}>
                 Alcance
@@ -163,18 +204,61 @@ export default function Avisos() {
               </select>
             </div>
 
-            {form.alcance !== 'Global' && (
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 600, fontSize: '0.85rem' }}>
-                  ID de {form.alcance === 'PorMateria' ? 'materia' : form.alcance === 'PorCohorte' ? 'cohorte' : 'rol'}
-                </label>
-                <input
-                  type="number"
-                  value={form.filtro_id}
-                  onChange={(e) => setForm((f) => ({ ...f, filtro_id: e.target.value }))}
-                />
-              </div>
-            )}
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 600, fontSize: '0.85rem' }}>
+                Severidad
+              </label>
+              <select
+                value={form.severidad}
+                onChange={(e) => setForm((f) => ({ ...f, severidad: e.target.value }))}
+              >
+                {severidades.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '0.75rem', display: 'flex', gap: '1rem' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 600, fontSize: '0.85rem' }}>
+                Inicio *
+              </label>
+              <input
+                type="datetime-local"
+                value={form.inicio_en}
+                onChange={(e) => setForm((f) => ({ ...f, inicio_en: e.target.value }))}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 600, fontSize: '0.85rem' }}>
+                Fin *
+              </label>
+              <input
+                type="datetime-local"
+                value={form.fin_en}
+                onChange={(e) => setForm((f) => ({ ...f, fin_en: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '0.75rem', display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={form.activo}
+                onChange={(e) => setForm((f) => ({ ...f, activo: e.target.checked }))}
+              />
+              Activo
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={form.requiere_ack}
+                onChange={(e) => setForm((f) => ({ ...f, requiere_ack: e.target.checked }))}
+              />
+              Requiere confirmación de lectura
+            </label>
           </div>
 
           <button className="btn btn-primary" onClick={handleSave}>
@@ -191,8 +275,10 @@ export default function Avisos() {
                 <tr>
                   <th>Título</th>
                   <th>Alcance</th>
-                  <th>Lecturas</th>
-                  <th>Fecha</th>
+                  <th>Severidad</th>
+                  <th>Activo</th>
+                  <th>Inicio</th>
+                  <th>Fin</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
@@ -200,9 +286,11 @@ export default function Avisos() {
                 {avisos.map((a) => (
                   <tr key={a.id}>
                     <td>{a.titulo}</td>
-                    <td>{a.alcance}{a.filtro_id ? ` (${a.filtro_id})` : ''}</td>
-                    <td>{a.confirmacion_lectura ?? 0}</td>
-                    <td>{new Date(a.created_at).toLocaleDateString()}</td>
+                    <td>{a.alcance}</td>
+                    <td>{a.severidad}</td>
+                    <td>{a.activo ? '✓' : '—'}</td>
+                    <td>{new Date(a.inicio_en).toLocaleDateString()}</td>
+                    <td>{new Date(a.fin_en).toLocaleDateString()}</td>
                     <td>
                       <div style={{ display: 'flex', gap: '0.25rem' }}>
                         <button

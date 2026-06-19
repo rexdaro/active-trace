@@ -48,16 +48,10 @@ async def admin_user(db_session, test_tenant):
         email="admin@test.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
-    )
-    db_session.add(user)
-    usuario = Usuario(
-        id=uid,
-        tenant_id=test_tenant.id,
-        email="admin@test.com",
         dni="0",
         cuil="0",
     )
-    db_session.add(usuario)
+    db_session.add(user)
     await db_session.commit()
     return user
 
@@ -75,16 +69,10 @@ async def alumno_user(db_session, test_tenant):
         email="alumno@test.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
-    )
-    db_session.add(user)
-    usuario = Usuario(
-        id=uid,
-        tenant_id=test_tenant.id,
-        email="alumno@test.com",
         dni="0",
         cuil="0",
     )
-    db_session.add(usuario)
+    db_session.add(user)
     ur = UserRole(user_id=user.id, role_id=role.id)
     db_session.add(ur)
     await db_session.commit()
@@ -563,7 +551,7 @@ class TestGetMetricas:
         await db_session.commit()
 
         for _ in range(3):
-            u = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"met_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+            u = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"met_{uuid.uuid4()}@t.com", hashed_password="x", dni="0", cuil="0")
             db_session.add(u)
             await db_session.flush()
             ack = AcknowledgmentAviso(

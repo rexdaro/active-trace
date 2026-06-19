@@ -49,16 +49,10 @@ async def mock_user(db_session, test_tenant):
         email="alumno@test.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
-    )
-    db_session.add(user)
-    usuario = Usuario(
-        id=uid,
-        tenant_id=test_tenant.id,
-        email="alumno@test.com",
         dni="0",
         cuil="0",
     )
-    db_session.add(usuario)
+    db_session.add(user)
     await db_session.commit()
     return user
 
@@ -72,16 +66,10 @@ async def mock_coordinador(db_session, test_tenant):
         email="coord@test.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
-    )
-    db_session.add(user)
-    usuario = Usuario(
-        id=uid,
-        tenant_id=test_tenant.id,
-        email="coord@test.com",
         dni="0",
         cuil="0",
     )
-    db_session.add(usuario)
+    db_session.add(user)
     await db_session.commit()
     return user
 
@@ -153,16 +141,10 @@ async def otro_alumno(db_session, test_tenant):
         email="otro@test.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
-    )
-    db_session.add(user)
-    usuario = Usuario(
-        id=uid,
-        tenant_id=test_tenant.id,
-        email="otro@test.com",
         dni="0",
         cuil="0",
     )
-    db_session.add(usuario)
+    db_session.add(user)
     await db_session.commit()
     return user
 
@@ -388,7 +370,7 @@ class TestImportAlumnos:
     ):
         alumno_ids = []
         for _ in range(3):
-            u = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"imp_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+            u = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"imp_{uuid.uuid4()}@t.com", hashed_password="x", dni="0", cuil="0")
             db_session.add(u)
             alumno_ids.append(u.id)
         await db_session.flush()
@@ -418,7 +400,7 @@ class TestRegistrarResultado:
     async def test_creates_resultado_and_audit(
         self, db_session, test_tenant, test_evaluacion, mock_coordinador,
     ):
-        alumno = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"res_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+        alumno = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"res_{uuid.uuid4()}@t.com", hashed_password="x", dni="0", cuil="0")
         db_session.add(alumno)
         await db_session.flush()
         request = ResultadoCreate(
@@ -445,8 +427,8 @@ class TestGetResultados:
     async def test_returns_list_for_evaluacion(
         self, db_session, test_tenant, test_evaluacion, mock_coordinador,
     ):
-        a1 = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"rl1_{uuid.uuid4()}@t.com", dni="0", cuil="0")
-        a2 = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"rl2_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+        a1 = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"rl1_{uuid.uuid4()}@t.com", hashed_password="x", dni="0", cuil="0")
+        a2 = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"rl2_{uuid.uuid4()}@t.com", hashed_password="x", dni="0", cuil="0")
         db_session.add_all([a1, a2])
         await db_session.flush()
         r1 = ResultadoEvaluacion(

@@ -22,7 +22,7 @@ class AuditLogMiddleware(BaseHTTPMiddleware):
                 status=str(response.status_code),
                 actor_id=user_id,
                 impersonator_id=impersonator_id,
-                detalle={"headers": dict(request.headers)},
+                detalle={},
                 filas_afectadas=0
             )
         

@@ -26,7 +26,7 @@ class Calificacion(Base, TimestampMixin, TenantMixin):
     aprobado: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     origen: Mapped[str] = mapped_column(String, nullable=False)
     importado_por: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("usuarios.id"), nullable=True
+        ForeignKey("users.id"), nullable=True
     )
     importado_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 

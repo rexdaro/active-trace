@@ -56,6 +56,15 @@ async def listar_versiones(
     return await PadronService.get_versiones(db, materia_id, user)
 
 
+@router.get("/{materia_id}/alumnos", dependencies=[Depends(check_permission("padron:ver"))])
+async def list_alumnos(
+    materia_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(check_permission("padron:ver")),
+):
+    return await PadronService.get_alumnos_by_materia(db, materia_id, user)
+
+
 @router.post("/sync", response_model=SyncResponse, dependencies=[Depends(check_permission("padron:sincronizar"))])
 async def sync_padron(
     request: SyncRequest,

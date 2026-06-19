@@ -20,6 +20,21 @@ from app.services.encuentros import EncuentrosService
 router = APIRouter(prefix="/api/v1/encuentros", tags=["encuentros"])
 
 
+@router.get(
+    "",
+    response_model=list[InstanciaEncuentroRead],
+    dependencies=[Depends(check_permission("encuentros:ver"))],
+)
+async def get_all_encuentros(
+    offset: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(check_permission("encuentros:ver")),
+):
+    result = await EncuentrosService.get_all_instancias(db, user, offset=offset, limit=limit)
+    return result.items
+
+
 @router.post(
     "/recurrente",
     response_model=RecurrenteResponse,

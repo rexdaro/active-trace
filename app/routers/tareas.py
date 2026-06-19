@@ -23,6 +23,23 @@ router = APIRouter(prefix="/api/v1/tareas", tags=["Tareas"])
 # ─── Static routes BEFORE parameterized ─────────────────────────────────
 
 
+@router.get(
+    "",
+    response_model=list[TareaResponse],
+    dependencies=[Depends(check_permission("tareas:ver"))],
+)
+async def listar_tareas(
+    estado: str | None = Query(None),
+    offset: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(check_permission("tareas:ver")),
+):
+    params = TareaListParams(estado=estado)
+    items, _total = await TareaService.list_all_tareas(db, user, params, offset, limit)
+    return items
+
+
 @router.post(
     "",
     response_model=TareaResponse,

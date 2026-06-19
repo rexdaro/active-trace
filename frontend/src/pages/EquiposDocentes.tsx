@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import api from '../services/api';
 
 interface Equipo {
-  id: number;
-  materia: string;
-  rol: string;
-  vigencia: string;
+  id: string;
+  user_id: string;
+  role_id: number;
+  contexto_id: string;
+  desde: string;
+  hasta: string | null;
 }
 
 export default function EquiposDocentes() {
@@ -16,21 +18,24 @@ export default function EquiposDocentes() {
 
   useEffect(() => {
     api
-      .get('/api/v1/equipos')
+      .get('/api/equipos')
       .then((res) => setEquipos(Array.isArray(res.data) ? res.data : []))
       .catch(() => setError('Error al cargar equipos'))
       .finally(() => setLoading(false));
   }, []);
 
   async function handleExport() {
+    const contextoId = prompt('ID del contexto (UUID):');
+    if (!contextoId) return;
     try {
-      const res = await api.get('/api/v1/equipos/export', {
+      const res = await api.get('/api/equipos/export', {
+        params: { contexto_id: contextoId },
         responseType: 'blob',
       });
       const url = URL.createObjectURL(res.data);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'equipos.json';
+      a.download = 'equipos.csv';
       a.click();
       URL.revokeObjectURL(url);
     } catch {
@@ -38,13 +43,16 @@ export default function EquiposDocentes() {
     }
   }
 
-  async function handleVigencia(id: number) {
+  async function handleVigencia(contextoId: string) {
     const nueva = prompt('Nueva vigencia (ej: 2025-06-15):');
     if (!nueva) return;
     try {
-      await api.put(`/api/v1/equipos/${id}/vigencia`, { vigencia: nueva });
+      await api.put('/api/equipos/vigencia', {
+        contexto_id: contextoId,
+        nuevo_desde: nueva,
+      });
       setEquipos((prev) =>
-        prev.map((e) => (e.id === id ? { ...e, vigencia: nueva } : e))
+        prev.map((e) => (e.contexto_id === contextoId ? { ...e, desde: nueva } : e))
       );
       setSuccess('Vigencia actualizada');
     } catch {
@@ -96,9 +104,9 @@ export default function EquiposDocentes() {
             onClick={async () => {
               const el = document.getElementById('masiva-data') as HTMLTextAreaElement;
               try {
-                await api.post('/api/v1/equipos/masiva', JSON.parse(el.value));
+                await api.post('/api/equipos/masiva', JSON.parse(el.value));
                 setSuccess('Asignación masiva completada');
-                const res = await api.get('/api/v1/equipos');
+                const res = await api.get('/api/equipos');
                 setEquipos(Array.isArray(res.data) ? res.data : []);
               } catch {
                 setError('Error en asignación masiva');
@@ -126,9 +134,9 @@ export default function EquiposDocentes() {
                 const desde = (document.getElementById('clonar-desde') as HTMLInputElement).value;
                 const hasta = (document.getElementById('clonar-hasta') as HTMLInputElement).value;
                 try {
-                  await api.post('/api/v1/equipos/clonar', { desde, hasta });
+                  await api.post('/api/equipos/clonar', { desde, hasta });
                   setSuccess('Equipo clonado correctamente');
-                  const res = await api.get('/api/v1/equipos');
+                  const res = await api.get('/api/equipos');
                   setEquipos(Array.isArray(res.data) ? res.data : []);
                 } catch {
                   setError('Error al clonar equipo');

@@ -79,7 +79,7 @@ export default function Liquidaciones() {
     setError(null);
     setSuccess(null);
     try {
-      await api.post('/api/v1/liquidaciones/calcular');
+      await api.post('/api/v1/liquidaciones/calcular', { periodo });
       setSuccess('Liquidaciones calculadas correctamente');
       loadLiquidaciones();
     } catch {

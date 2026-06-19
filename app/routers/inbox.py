@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.rbac import get_current_user
 from app.models.mensaje_interno import MensajeInterno
-from app.models.user import Usuario
+from app.models.user import User
 from app.schemas.inbox import MensajeResponse, MensajeSend, MensajeResponder
 from app.services.audit import AuditService
 
@@ -49,9 +49,9 @@ async def send_mensaje(
     db: AsyncSession = Depends(get_db),
     user=Depends(get_current_user),
 ):
-    stmt = select(Usuario).where(
-        Usuario.id == body.destinatario_id,
-        Usuario.tenant_id == user.tenant_id,
+    stmt = select(User).where(
+        User.id == body.destinatario_id,
+        User.tenant_id == user.tenant_id,
     )
     result = await db.execute(stmt)
     destinatario = result.scalar_one_or_none()

@@ -83,7 +83,8 @@ async def test_alumno(db_session, test_tenant):
     alumno = Usuario(
         id=uuid.uuid4(),
         tenant_id=test_tenant.id,
-        _email=encrypt("alumno@test.com", _ENCRYPTION_KEY),
+        email="alumno@test.com",
+        hashed_password="x",
         _dni=encrypt("12345678", _ENCRYPTION_KEY),
         _cuil=encrypt("20-12345678-9", _ENCRYPTION_KEY),
         _cbu=None,
@@ -271,7 +272,8 @@ class TestReserva:
 
         otro_alumno = Usuario(
             id=uuid.uuid4(), tenant_id=test_tenant.id,
-            _email=encrypt("otro@test.com", _ENCRYPTION_KEY),
+            email="otro@test.com",
+            hashed_password="x",
             _dni=encrypt("87654321", _ENCRYPTION_KEY),
             _cuil=encrypt("20-87654321-9", _ENCRYPTION_KEY),
         )
@@ -437,7 +439,8 @@ class TestReserva:
         for i in range(3):
             alumno = Usuario(
                 id=uuid.uuid4(), tenant_id=test_tenant.id,
-                _email=encrypt(f"alumno{i}@test.com", _ENCRYPTION_KEY),
+                email=f"alumno{i}@test.com",
+                hashed_password="x",
                 _dni=encrypt(f"{i}"*8, _ENCRYPTION_KEY),
                 _cuil=encrypt(f"20-{i}235678-9", _ENCRYPTION_KEY),
             )
@@ -471,7 +474,8 @@ class TestReserva:
         })
         otro = Usuario(
             id=uuid.uuid4(), tenant_id=test_tenant.id,
-            _email=encrypt("otro@test.com", _ENCRYPTION_KEY),
+            email="otro@test.com",
+            hashed_password="x",
             _dni=encrypt("87654321", _ENCRYPTION_KEY),
             _cuil=encrypt("20-87654321-9", _ENCRYPTION_KEY),
         )

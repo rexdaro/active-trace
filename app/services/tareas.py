@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.tareas import TareaRepository
 from app.models.tarea import Tarea, ComentarioTarea, EstadoTarea
 from app.models.materia import Materia
-from app.models.user import Usuario, User
+from app.models.user import User
 from app.models.rbac import Role, Permission, RolePermission
 from app.models.user_role import UserRole
 from app.services.audit import AuditService
@@ -32,7 +32,7 @@ class TareaService:
             if not materia:
                 raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Materia no encontrada")
 
-        usuario_asignado = await db.get(Usuario, obj_in.asignado_a)
+        usuario_asignado = await db.get(User, obj_in.asignado_a)
         if not usuario_asignado:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Usuario asignado no encontrado")
 
@@ -91,7 +91,7 @@ class TareaService:
             # Check if asignado_a is being changed (delegation)
             if "asignado_a" in data and data["asignado_a"] is not None:
                 nuevo_asignado = data["asignado_a"]
-                usuario_val = await db.get(Usuario, nuevo_asignado)
+                usuario_val = await db.get(User, nuevo_asignado)
                 if not usuario_val:
                     raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Usuario asignado no encontrado")
 
@@ -136,7 +136,7 @@ class TareaService:
         # Handle asignado_a change for delegation (no estado change)
         if "asignado_a" in data and data["asignado_a"] is not None:
             nuevo_asignado = data["asignado_a"]
-            usuario_val = await db.get(Usuario, nuevo_asignado)
+            usuario_val = await db.get(User, nuevo_asignado)
             if not usuario_val:
                 raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Usuario asignado no encontrado")
 

@@ -59,16 +59,10 @@ async def mock_user(db_session, test_tenant):
         email="coord@test.com",
         hashed_password="hashed_placeholder",
         is_2fa_enabled=False,
-    )
-    db_session.add(user)
-    usuario = Usuario(
-        id=uid,
-        tenant_id=test_tenant.id,
-        email="coord@test.com",
         dni="0",
         cuil="0",
     )
-    db_session.add(usuario)
+    db_session.add(user)
     await db_session.commit()
     return user
 
@@ -89,7 +83,7 @@ class TestMisEquipos:
 
     @pytest.mark.asyncio
     async def test_mis_equipos_returns_only_own(self, db_session, mock_user, test_tenant, test_role):
-        other = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"other_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+        other = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"other_{uuid.uuid4()}@t.com", hashed_password="x", dni="0", cuil="0")
         db_session.add(other)
         await db_session.flush()
         ctx1 = uuid.uuid4()
@@ -111,7 +105,7 @@ class TestMisEquipos:
     async def test_mis_equipos_tenant_isolation(self, db_session, mock_user, test_tenant, test_role):
         other_tenant = Tenant(id=uuid.uuid4(), name="Other Tenant")
         db_session.add(other_tenant)
-        other_user = Usuario(id=uuid.uuid4(), tenant_id=other_tenant.id, email=f"oth_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+        other_user = Usuario(id=uuid.uuid4(), tenant_id=other_tenant.id, email=f"oth_{uuid.uuid4()}@t.com", hashed_password="x", dni="0", cuil="0")
         db_session.add(other_user)
         await db_session.flush()
         a_other = make_asignacion(other_tenant.id, other_user.id, test_role.id, uuid.uuid4(),
@@ -134,8 +128,8 @@ class TestAsignacionMasiva:
 
     @pytest.mark.asyncio
     async def test_creates_n_asignaciones(self, db_session, mock_user, test_tenant, test_role):
-        u1 = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"mas1_{uuid.uuid4()}@t.com", dni="0", cuil="0")
-        u2 = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"mas2_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+        u1 = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"mas1_{uuid.uuid4()}@t.com", hashed_password="x", dni="0", cuil="0")
+        u2 = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"mas2_{uuid.uuid4()}@t.com", hashed_password="x", dni="0", cuil="0")
         db_session.add_all([u1, u2])
         await db_session.flush()
         ctx = uuid.uuid4()
@@ -158,7 +152,7 @@ class TestAsignacionMasiva:
         ctx = uuid.uuid4()
         from_date = datetime(2025, 3, 1, tzinfo=timezone.utc)
         until_date = datetime(2025, 12, 31, tzinfo=timezone.utc)
-        u = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"allf_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+        u = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"allf_{uuid.uuid4()}@t.com", hashed_password="x", dni="0", cuil="0")
         db_session.add(u)
         await db_session.flush()
 
@@ -176,7 +170,7 @@ class TestAsignacionMasiva:
 
     @pytest.mark.asyncio
     async def test_audit_logged(self, db_session, mock_user, test_tenant, test_role):
-        u = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"aud_{uuid.uuid4()}@t.com", dni="0", cuil="0")
+        u = Usuario(id=uuid.uuid4(), tenant_id=test_tenant.id, email=f"aud_{uuid.uuid4()}@t.com", hashed_password="x", dni="0", cuil="0")
         db_session.add(u)
         await db_session.flush()
         request = AsignacionMasivaRequest(asignaciones=[
@@ -412,12 +406,10 @@ class TestTenantIsolation:
         await db_session.flush()
 
         user_a = User(id=uuid.uuid4(), tenant_id=tenant_a.id, email="a@test.com",
-                       hashed_password="ph", is_2fa_enabled=False)
+                       hashed_password="ph", is_2fa_enabled=False, dni="0", cuil="0")
         user_b = User(id=uuid.uuid4(), tenant_id=tenant_b.id, email="b@test.com",
-                       hashed_password="ph", is_2fa_enabled=False)
-        usr_a = Usuario(id=user_a.id, tenant_id=tenant_a.id, email="a@test.com", dni="0", cuil="0")
-        usr_b = Usuario(id=user_b.id, tenant_id=tenant_b.id, email="b@test.com", dni="0", cuil="0")
-        db_session.add_all([user_a, user_b, usr_a, usr_b])
+                       hashed_password="ph", is_2fa_enabled=False, dni="0", cuil="0")
+        db_session.add_all([user_a, user_b])
         await db_session.flush()
 
         ctx = uuid.uuid4()

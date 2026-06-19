@@ -1,6 +1,6 @@
 from __future__ import annotations
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from pydantic import BaseModel, ConfigDict
 
@@ -9,6 +9,8 @@ class FacturaCreate(BaseModel):
     usuario_id: uuid.UUID
     periodo: str
     detalle: str
+    fecha: date
+    monto: Decimal
     referencia_archivo: str | None = None
     tamano_kb: Decimal | None = None
 
@@ -21,6 +23,8 @@ class FacturaResponse(BaseModel):
     usuario_id: uuid.UUID
     periodo: str
     detalle: str
+    fecha: date
+    monto: Decimal
     referencia_archivo: str | None
     tamano_kb: Decimal | None
     estado: str

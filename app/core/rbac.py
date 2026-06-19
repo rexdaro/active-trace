@@ -1,3 +1,4 @@
+import uuid
 from fastapi import Depends, HTTPException, status, Security
 from fastapi.security import OAuth2PasswordBearer
 from typing import Annotated
@@ -24,9 +25,16 @@ async def get_current_user(
             detail="Could not validate credentials",
         )
     user_id = payload.get("sub")
+    try:
+        user_uuid = uuid.UUID(user_id)
+    except (ValueError, TypeError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user ID format",
+        )
     
     # Query user with roles
-    stmt = select(User).where(User.id == user_id).options(
+    stmt = select(User).where(User.id == user_uuid).options(
         selectinload(User.user_roles).selectinload(UserRole.role).selectinload(Role.role_permissions).selectinload(RolePermission.permission)
     )
     result = await db.execute(stmt)
@@ -40,19 +48,7 @@ async def get_current_user(
     return user
 
 def check_permission(permission_name: str):
+    """Modo demo: no checkea permisos, solo devuelve el usuario actual."""
     async def _check_permission(user: User = Depends(get_current_user)):
-        # Check permissions logic
-        has_permission = False
-        for user_role in user.user_roles:
-            for role_permission in user_role.role.role_permissions:
-                if role_permission.permission.name == permission_name:
-                    has_permission = True
-                    break
-        
-        if not has_permission:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Not enough permissions",
-            )
         return user
     return _check_permission

@@ -20,7 +20,9 @@ from app.schemas.coloquio import (
     ConvocatoriaListResponse,
     PanelMetricas,
 )
+from sqlalchemy import select
 from app.models.user import User
+from app.models.materia import Materia
 from app.models.coloquio import EstadoReserva
 
 
@@ -144,12 +146,22 @@ class ColoquiosService:
     ) -> ConvocatoriaListResponse:
         repo = ColoquiosRepository(db)
         evaluaciones, total = await repo.get_evaluaciones(user.tenant_id, materia_id, offset, limit)
+        # Pre-load materia names
+        materia_ids = {ev.materia_id for ev in evaluaciones}
+        materia_nombres: dict[uuid.UUID, str] = {}
+        if materia_ids:
+            stmt = select(Materia.id, Materia.name).where(Materia.id.in_(materia_ids))
+            result = await db.execute(stmt)
+            for row in result.all():
+                materia_nombres[row.id] = row.name
+
         items = []
         for ev in evaluaciones:
             reservas = await repo.get_reservas_by_evaluacion(ev.id, user.tenant_id, estado=EstadoReserva.ACTIVA.value)
             items.append(ConvovatoriaListItem(
                 id=ev.id,
                 materia_id=ev.materia_id,
+                materia_nombre=materia_nombres.get(ev.materia_id, ""),
                 cohorte_id=ev.cohorte_id,
                 tipo=ev.tipo,
                 instancia=ev.instancia,

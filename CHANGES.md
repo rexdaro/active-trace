@@ -36,7 +36,9 @@ C-01 foundation-setup (infra, Docker, FastAPI skel, DB inicial, OTel)
             │   │   ├── C-15 avisos-y-acknowledgment (Aviso, ack, scope, vigencia)
             │   │   ├── C-16 tareas-internas (Tarea, ComentarioTarea, workflow)
             │   │   ├── C-17 programas-y-fechas-academicas (ProgramaMateria, FechaAcademica)
-            │   │   └── C-18 liquidaciones-y-honorarios (SalarioBase/Plus, Liquidacion, Factura)
+            │   │   ├── C-18 liquidaciones-y-honorarios (SalarioBase/Plus, Liquidacion, Factura)
+            │   │   └── C-25 users-usuarios-unificacion (User unificado, admin crea usuarios)
+            │   │       └── C-26 login-moderno-y-registro (login redesign, registro público)
             │   ├── C-19 panel-auditoria-metricas (dashboards de uso, F9.1)
             │   ├── C-20 perfil-y-mensajeria-interna (perfil propio, inbox interno)
             │   └── C-21 frontend-shell-y-auth (SPA shell, login, guard, cliente HTTP)
@@ -522,15 +524,49 @@ C-01 → C-02 → C-03 → C-04 → C-06 → C-07 → C-09 → C-10 → C-11 →
 
 ---
 
+## FASE 6 — Demo y UX (presentación)
+
+> Cambios orientados a tener una demo presentable: unificación del modelo de usuarios para simplificar, registro público, y login con diseño moderno.
+
+### [C-25] `users-usuarios-unificacion`
+- **Estado**: `[ ]` pendiente
+- **Scope**:
+  - Unificar las tablas `users` (auth) y `usuarios` (fiscal/PII) en una sola entidad con todos los campos: email, password, DNI, CUIL, CBU, nombre, datos fiscales/bancarios, 2FA.
+  - Migrar datos existentes de ambas tablas a la unificada. Eliminar tablas viejas.
+  - Refactorizar todos los routers que usaban `User` o `Usuario` para que apunten a la nueva entidad unificada.
+  - Agregar `POST /api/v1/usuarios` (admin crea usuario con cualquier rol) y `PUT /api/v1/usuarios/{id}/roles` (asignar rol).
+  - Tests: creación con/sin rol, migración de datos legacy.
+- **Dependencias**: `C-07`, `C-24`
+- **Governance**: CRITICO
+- **Leer antes**:
+  - `knowledge-base/04_modelo_de_datos.md` §E4 Usuario
+  - `knowledge-base/03_actores_y_roles.md` §2 (roles), §5 (vigencia)
+
+### [C-26] `login-moderno-y-registro`
+- **Estado**: `[ ]` pendiente
+- **Scope**:
+  - Rediseño completo de la pantalla de login: diseño moderno, centrado, con branding, animaciones suaves, placeholders claros, mensajes de error estilizados.
+  - Formulario de registro público: email + contraseña + confirmar contraseña. Crea usuario con rol `ALUMNO` automáticamente.
+  - Redirige al login tras registro exitoso con mensaje de confirmación.
+  - Backend: `POST /api/auth/register` que crea `User` unificado + asigna rol ALUMNO.
+  - Tests: registro exitoso, email duplicado rechazado, login con usuario registrado.
+- **Dependencias**: `C-21`, `C-25`
+- **Governance**: BAJO
+- **Leer antes**:
+  - `knowledge-base/08_arquitectura_propuesta.md` §2 (frontend)
+  - `knowledge-base/07_flujos_principales.md` FL-01 (auth)
+
+---
+
 ## Resumen
 
 | Métrica | Valor |
 |---------|-------|
-| Total de changes | 24 |
-| Fases | 6 (FASE 0 a FASE 5) |
-| Camino crítico | 10 changes (`C-01 → C-02 → C-03 → C-04 → C-06 → C-07 → C-09 → C-10 → C-11 → C-12`) |
+| Total de changes | 26 |
+| Fases | 7 (FASE 0 a FASE 6) |
+| Camino crítico | 12 changes (`C-01 → C-02 → C-03 → C-04 → C-06 → C-07 → C-09 → C-10 → C-11 → C-12 → C-25 → C-26`) |
 | Gates de paralelismo | 11 (GATE 0 a GATE 10) |
-| Changes CRITICO (governance) | 6 (C-02, C-03, C-04, C-05, C-07, C-18) |
+| Changes CRITICO (governance) | 7 (C-02, C-03, C-04, C-05, C-07, C-18, C-25) |
 | Primer fork | GATE 4 (tras C-04, seguridad lista) |
 
 **Primer change recomendado**: `C-01` (foundation-setup).

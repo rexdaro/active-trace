@@ -2,29 +2,36 @@ import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { getCurrentUser, type User } from '../services/api';
 
+type Role = string;
+
 interface MenuItem {
   path: string;
   label: string;
-  permission: string | null;
+  roles: Role[];  // empty = visible to all
 }
 
 const menuItems: MenuItem[] = [
-  { path: '/', label: 'Dashboard', permission: null },
-  { path: '/calificaciones', label: 'Calificaciones', permission: 'calificaciones' },
-  { path: '/atrasados', label: 'Atrasados', permission: 'atrasados' },
-  { path: '/comunicaciones', label: 'Comunicaciones', permission: 'comunicaciones' },
-  { path: '/equipos', label: 'Equipos docentes', permission: 'equipos' },
-  { path: '/avisos', label: 'Avisos', permission: 'avisos' },
-  { path: '/tareas', label: 'Tareas', permission: 'tareas' },
-  { path: '/encuentros', label: 'Encuentros', permission: 'encuentros' },
-  { path: '/coloquios', label: 'Coloquios', permission: 'coloquios' },
-  { path: '/liquidaciones', label: 'Liquidaciones', permission: 'liquidaciones' },
-  { path: '/facturas', label: 'Facturas', permission: 'facturas' },
-  { path: '/salarios', label: 'Salarios', permission: 'salarios' },
-  { path: '/estructura', label: 'Estructura', permission: 'estructura' },
-  { path: '/auditoria', label: 'Auditoría', permission: 'auditoria' },
-  { path: '/usuarios', label: 'Usuarios', permission: 'usuarios' },
+  { path: '/', label: 'Dashboard', roles: [] },
+  { path: '/calificaciones', label: 'Calificaciones', roles: ['PROFESOR', 'COORDINADOR', 'ADMIN'] },
+  { path: '/atrasados', label: 'Atrasados', roles: ['PROFESOR', 'TUTOR', 'COORDINADOR', 'ADMIN'] },
+  { path: '/comunicaciones', label: 'Comunicaciones', roles: ['PROFESOR', 'COORDINADOR', 'ADMIN'] },
+  { path: '/equipos', label: 'Equipos docentes', roles: ['COORDINADOR', 'ADMIN'] },
+  { path: '/avisos', label: 'Avisos', roles: [] },
+  { path: '/tareas', label: 'Tareas', roles: ['PROFESOR', 'COORDINADOR', 'ADMIN'] },
+  { path: '/encuentros', label: 'Encuentros', roles: ['PROFESOR', 'COORDINADOR', 'ADMIN'] },
+  { path: '/coloquios', label: 'Coloquios', roles: ['ALUMNO', 'PROFESOR', 'COORDINADOR', 'ADMIN'] },
+  { path: '/liquidaciones', label: 'Liquidaciones', roles: ['FINANZAS', 'ADMIN'] },
+  { path: '/facturas', label: 'Facturas', roles: ['FINANZAS', 'ADMIN'] },
+  { path: '/salarios', label: 'Salarios', roles: ['FINANZAS', 'ADMIN'] },
+  { path: '/estructura', label: 'Estructura', roles: ['ADMIN'] },
+  { path: '/auditoria', label: 'Auditoría', roles: ['COORDINADOR', 'ADMIN', 'FINANZAS'] },
+  { path: '/usuarios', label: 'Usuarios', roles: ['ADMIN'] },
 ];
+
+function canSeeItem(item: MenuItem, userRoles: Role[]): boolean {
+  if (item.roles.length === 0) return true;          // visible to all
+  return item.roles.some((r) => userRoles.includes(r));
+}
 
 export default function AppLayout() {
   const [user, setUser] = useState<User | null>(null);
@@ -38,19 +45,13 @@ export default function AppLayout() {
       .catch(() => setError('Error al cargar usuario'));
   }, []);
 
-  function hasPermission(permission: string | null): boolean {
-    if (!permission) return true;
-    if (!user) return false;
-    return user.permissions.some((p) => p.startsWith(permission));
-  }
-
   function handleLogout() {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     navigate('/login');
   }
 
-  const visibleItems = menuItems.filter((item) => hasPermission(item.permission));
+  const userRoles = user?.roles ?? [];
 
   return (
     <div className="app-layout">
@@ -71,7 +72,7 @@ export default function AppLayout() {
         <div className="sidebar-header">trace</div>
 
         <nav className="sidebar-nav">
-          {visibleItems.map((item) => (
+          {menuItems.filter((item) => canSeeItem(item, userRoles)).map((item) => (
             <NavLink
               key={item.path}
               to={item.path}

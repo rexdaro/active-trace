@@ -9,8 +9,8 @@ class MensajeInterno(Base, TimestampMixin, TenantMixin):
     __tablename__ = "mensajes_internos"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    remitente_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("usuarios.id"), nullable=False)
-    destinatario_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("usuarios.id"), nullable=False)
+    remitente_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    destinatario_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
     asunto: Mapped[str] = mapped_column(String(255), nullable=False)
     cuerpo: Mapped[str] = mapped_column(Text, nullable=False)
     leido: Mapped[bool] = mapped_column(Boolean, default=False)

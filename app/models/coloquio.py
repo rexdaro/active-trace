@@ -34,7 +34,7 @@ class ReservaEvaluacion(Base, TimestampMixin, TenantMixin):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     evaluacion_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("evaluaciones.id", ondelete="CASCADE"), nullable=False)
-    alumno_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("usuarios.id"), nullable=False)
+    alumno_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
     fecha_hora: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     estado: Mapped[str] = mapped_column(String, nullable=False, default=EstadoReserva.ACTIVA.value)
 
@@ -49,7 +49,7 @@ class ResultadoEvaluacion(Base, TimestampMixin, TenantMixin):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     evaluacion_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("evaluaciones.id", ondelete="CASCADE"), nullable=False)
-    alumno_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("usuarios.id"), nullable=False)
+    alumno_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
     nota_final: Mapped[str] = mapped_column(String, nullable=False)
 
     __table_args__ = (

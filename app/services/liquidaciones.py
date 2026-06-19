@@ -3,7 +3,7 @@ import uuid
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from fastapi import HTTPException, status
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.liquidacion import Liquidacion, Factura, EstadoLiquidacion, EstadoFactura

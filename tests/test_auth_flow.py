@@ -9,7 +9,7 @@ client = TestClient(app)
 
 def test_valid_login_returns_token():
     # Scenario 1: Valid login -> Token received.
-    response = client.post("/auth/login", json={"username": "testuser", "password": "correctpassword"})
+    response = client.post("/api/auth/login", json={"username": "testuser", "password": "correctpassword"})
     assert response.status_code == 200
     assert "access_token" in response.json()
 
@@ -30,12 +30,12 @@ def test_valid_2fa_token_grants_access():
     secret = pyotp.random_base32()
     totp = pyotp.TOTP(secret)
     token = totp.now()
-    response = client.post("/auth/2fa/verify", json={"secret": secret, "token": token})
+    response = client.post("/api/auth/2fa/verify", json={"secret": secret, "token": token})
     assert response.status_code == 200
     assert "message" in response.json()
 
 def test_invalid_2fa_token_denies_access():
     # Scenario 5: Invalid 2FA token -> Access denied.
     secret = pyotp.random_base32()
-    response = client.post("/auth/2fa/verify", json={"secret": secret, "token": "000000"})
+    response = client.post("/api/auth/2fa/verify", json={"secret": secret, "token": "000000"})
     assert response.status_code == 400

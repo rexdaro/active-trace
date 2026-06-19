@@ -6,7 +6,7 @@ from datetime import date, datetime, timezone, timedelta
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from app.models.base import Base
 from app.models.tenant import Tenant
-from app.models.user import User, Usuario
+from app.models.user import User
 from app.models.materia import Materia
 from app.models.carrera import Carrera
 from app.models.cohorte import Cohorte
@@ -46,15 +46,16 @@ async def test_tenant(db_session):
 @pytest_asyncio.fixture
 async def mock_user(db_session, test_tenant):
     uid = uuid.uuid4()
-    usuario = Usuario(id=uid, tenant_id=test_tenant.id, email="usuario_test@t.com", dni="0", cuil="0")
     user = User(
         id=uid,
         tenant_id=test_tenant.id,
         email="teacher@test.com",
         hashed_password="hashed",
         is_2fa_enabled=False,
+        dni="0",
+        cuil="0",
     )
-    db_session.add_all([usuario, user])
+    db_session.add(user)
     await db_session.commit()
     return user
 
@@ -539,12 +540,12 @@ class TestListarGuardias:
         )
 
         otro_uid = uuid.uuid4()
-        otro_usuario = Usuario(id=otro_uid, tenant_id=test_tenant.id, email="other_u@t.com", dni="0", cuil="0")
         otro_user = User(
             id=otro_uid, tenant_id=test_tenant.id,
-            email="other@test.com", hashed_password="h", is_2fa_enabled=False,
+            email="other@test.com", hashed_password="h",
+            is_2fa_enabled=False, dni="0", cuil="0",
         )
-        db_session.add_all([otro_usuario, otro_user])
+        db_session.add(otro_user)
         await db_session.commit()
 
         otra_asig = Asignacion(
@@ -588,12 +589,12 @@ class TestListarGuardias:
         await db_session.commit()
 
         otro_uid = uuid.uuid4()
-        otro_usuario = Usuario(id=otro_uid, tenant_id=test_tenant.id, email="other_u2@t.com", dni="0", cuil="0")
         otro_user = User(
             id=otro_uid, tenant_id=test_tenant.id,
-            email="other@test.com", hashed_password="h", is_2fa_enabled=False,
+            email="other@test.com", hashed_password="h",
+            is_2fa_enabled=False, dni="0", cuil="0",
         )
-        db_session.add_all([otro_usuario, otro_user])
+        db_session.add(otro_user)
         otra_asig = Asignacion(
             id=uuid.uuid4(), tenant_id=test_tenant.id,
             user_id=otro_user.id, role_id=test_role_coordinador.id,

@@ -36,3 +36,33 @@ async def get_carreras(db: AsyncSession = Depends(get_db), user: User = Depends(
     repo = CarreraRepository(db)
     return await repo.get_all(user.tenant_id)
 
+
+@router.put("/{carrera_id}", dependencies=[Depends(check_permission("estructura:gestionar"))])
+async def update_carrera(
+    carrera_id: uuid.UUID,
+    body: CarreraUpdate,
+    db: AsyncSession = Depends(get_db),
+):
+    repo = CarreraRepository(db)
+    carrera = await repo.get(carrera_id)
+    if not carrera:
+        raise HTTPException(status_code=404, detail="Carrera not found")
+    for field, value in body.model_dump(exclude_unset=True).items():
+        setattr(carrera, field, value)
+    await db.commit()
+    return carrera
+
+
+@router.delete("/{carrera_id}", dependencies=[Depends(check_permission("estructura:gestionar"))])
+async def delete_carrera(
+    carrera_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    repo = CarreraRepository(db)
+    carrera = await repo.get(carrera_id)
+    if not carrera:
+        raise HTTPException(status_code=404, detail="Carrera not found")
+    await db.delete(carrera)
+    await db.commit()
+    return {"ok": True, "mensaje": "Carrera eliminada"}
+

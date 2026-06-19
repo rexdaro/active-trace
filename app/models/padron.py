@@ -15,7 +15,7 @@ class VersionPadron(Base, TimestampMixin, TenantMixin):
     archivo_nombre: Mapped[str] = mapped_column(String, nullable=False)
     archivo_hash: Mapped[str] = mapped_column(String, nullable=False)
     origen: Mapped[str] = mapped_column(String, nullable=False)
-    cargado_por: Mapped[uuid.UUID] = mapped_column(ForeignKey("usuarios.id"), nullable=False)
+    cargado_por: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
     activa: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
 
@@ -24,7 +24,7 @@ class EntradaPadron(Base, TimestampMixin, TenantMixin):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     version_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("versiones_padron.id", ondelete="CASCADE"), nullable=False)
-    usuario_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("usuarios.id"), nullable=True)
+    usuario_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     nombre: Mapped[str] = mapped_column(String, nullable=False)
     apellidos: Mapped[str] = mapped_column(String, nullable=False)
     _email: Mapped[str] = mapped_column("email", String, nullable=False)

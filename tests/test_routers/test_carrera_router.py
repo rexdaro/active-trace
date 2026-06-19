@@ -47,7 +47,7 @@ async def _app_with_auth():
 @pytest.mark.asyncio
 async def test_create_carrera_validation(_app_with_auth):
     client = _app_with_auth
-    response = client.post("/api/carreras/api/carreras", json={
+    response = client.post("/api/carreras", json={
         "name": "Ingeniería",
         "code": "ING",
     })
