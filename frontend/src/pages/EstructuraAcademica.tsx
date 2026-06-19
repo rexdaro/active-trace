@@ -173,7 +173,13 @@ export default function EstructuraAcademica() {
 
       <div className="card">
         <h2 style={{ marginBottom: '1rem' }}>
-          {editId ? 'Editar' : 'Nuevo'} {activeTab === 'carreras' ? 'carrera' : activeTab === 'cohortes' ? 'cohorte' : 'materia'}
+          {(() => {
+            const isCarrera = activeTab === 'carreras';
+            const isMateria = activeTab === 'materias';
+            const article = (isCarrera || isMateria) ? 'Nueva' : 'Nuevo';
+            const label = isCarrera ? 'carrera' : activeTab === 'cohortes' ? 'cohorte' : 'materia';
+            return `${editId ? 'Editar' : article} ${label}`;
+          })()}
         </h2>
         <form onSubmit={handleSave} style={{ maxWidth: '500px' }}>
           <div style={{ marginBottom: '1rem' }}>
