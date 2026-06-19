@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import api from '../services/api';
+import api, { getCurrentUser, type User } from '../services/api';
 
 interface Convocatoria {
   id: string;
@@ -35,6 +35,9 @@ export default function Coloquios() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  const canManage = user?.roles?.some((r) => r === 'COORDINADOR' || r === 'ADMIN' || r === 'PROFESOR');
 
   // Form state (matches EvaluacionCreate schema)
   const [materiaId, setMateriaId] = useState('');
@@ -47,6 +50,7 @@ export default function Coloquios() {
   const [loadingMetricas, setLoadingMetricas] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    getCurrentUser().then(setUser).catch(() => {});
     Promise.all([
       api.get('/api/v1/coloquios'),
       api.get('/api/materias'),
@@ -127,9 +131,11 @@ export default function Coloquios() {
     <div>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1>Coloquios</h1>
-        <button className="btn btn-primary" onClick={() => { setShowForm(!showForm); resetForm(); }}>
-          {showForm ? 'Cancelar' : 'Nueva convocatoria'}
-        </button>
+        {canManage && (
+          <button className="btn btn-primary" onClick={() => { setShowForm(!showForm); resetForm(); }}>
+            {showForm ? 'Cancelar' : 'Nueva convocatoria'}
+          </button>
+        )}
       </div>
 
       {error && <div className="error-message">{error}</div>}
@@ -233,13 +239,15 @@ export default function Coloquios() {
                       )}
                     </td>
                     <td>
-                      <button
-                        className="btn btn-ghost"
-                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}
-                        onClick={() => handleImportar(c.id)}
-                      >
-                        Importar
-                      </button>
+                      {canManage && (
+                        <button
+                          className="btn btn-ghost"
+                          style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}
+                          onClick={() => handleImportar(c.id)}
+                        >
+                          Importar
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

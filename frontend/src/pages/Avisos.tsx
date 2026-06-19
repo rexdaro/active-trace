@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import api from '../services/api';
+import api, { getCurrentUser, type User } from '../services/api';
 
 interface Aviso {
   id: string;
@@ -62,8 +62,12 @@ export default function Avisos() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Aviso | null>(null);
   const [form, setForm] = useState<AvisoForm>(emptyForm);
+  const [user, setUser] = useState<User | null>(null);
+
+  const canManage = user?.roles?.some((r) => r === 'COORDINADOR' || r === 'ADMIN');
 
   useEffect(() => {
+    getCurrentUser().then(setUser).catch(() => {});
     api
       .get('/api/v1/avisos')
       .then((res) => setAvisos(Array.isArray(res.data) ? res.data : []))
@@ -146,9 +150,11 @@ export default function Avisos() {
     <div>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1>Avisos</h1>
-        <button className="btn btn-primary" onClick={() => { resetForm(); setShowForm(!showForm); }}>
-          {showForm ? 'Cancelar' : 'Nuevo aviso'}
-        </button>
+        {canManage && (
+          <button className="btn btn-primary" onClick={() => { resetForm(); setShowForm(!showForm); }}>
+            {showForm ? 'Cancelar' : 'Nuevo aviso'}
+          </button>
+        )}
       </div>
 
       {error && <div className="error-message">{error}</div>}
@@ -279,7 +285,7 @@ export default function Avisos() {
                   <th>Activo</th>
                   <th>Inicio</th>
                   <th>Fin</th>
-                  <th>Acciones</th>
+                  {canManage && <th>Acciones</th>}
                 </tr>
               </thead>
               <tbody>
@@ -291,24 +297,26 @@ export default function Avisos() {
                     <td>{a.activo ? '✓' : '—'}</td>
                     <td>{new Date(a.inicio_en).toLocaleDateString()}</td>
                     <td>{new Date(a.fin_en).toLocaleDateString()}</td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '0.25rem' }}>
-                        <button
-                          className="btn btn-ghost"
-                          style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}
-                          onClick={() => startEdit(a)}
-                        >
-                          Editar
-                        </button>
-                        <button
-                          className="btn btn-danger"
-                          style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}
-                          onClick={() => handleDelete(a.id)}
-                        >
-                          Eliminar
-                        </button>
-                      </div>
-                    </td>
+                    {canManage && (
+                      <td>
+                        <div style={{ display: 'flex', gap: '0.25rem' }}>
+                          <button
+                            className="btn btn-ghost"
+                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}
+                            onClick={() => startEdit(a)}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            className="btn btn-danger"
+                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}
+                            onClick={() => handleDelete(a.id)}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
