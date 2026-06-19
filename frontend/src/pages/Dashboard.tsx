@@ -60,6 +60,10 @@ export default function Dashboard() {
 
   const userRoles = user?.roles ?? [];
 
+  const hasStatsAccess = userRoles.some((r) =>
+    !['ALUMNO', 'NEXO'].includes(r)
+  );
+
   const visibleActions = ALL_ACTIONS.filter(
     (a) => a.roles.length === 0 || a.roles.some((r) => userRoles.includes(r))
   );
@@ -73,20 +77,28 @@ export default function Dashboard() {
         <h1>Dashboard</h1>
       </div>
 
-      <div className="card-grid">
-        <div className="stat-card">
-          <div className="stat-value">{stats?.materias ?? 0}</div>
-          <div className="stat-label">Materias</div>
+      {hasStatsAccess ? (
+        <div className="card-grid">
+          <div className="stat-card">
+            <div className="stat-value">{stats?.materias ?? 0}</div>
+            <div className="stat-label">Materias</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-value">{stats?.atrasados ?? 0}</div>
+            <div className="stat-label">Alumnos atrasados</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-value">{stats?.comunicacionesPendientes ?? 0}</div>
+            <div className="stat-label">Comunicaciones pendientes</div>
+          </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-value">{stats?.atrasados ?? 0}</div>
-          <div className="stat-label">Alumnos atrasados</div>
+      ) : (
+        <div className="card">
+          <p style={{ color: 'var(--text-muted)', margin: 0 }}>
+            No hay métricas disponibles para tu rol.
+          </p>
         </div>
-        <div className="stat-card">
-          <div className="stat-value">{stats?.comunicacionesPendientes ?? 0}</div>
-          <div className="stat-label">Comunicaciones pendientes</div>
-        </div>
-      </div>
+      )}
 
       {visibleActions.length > 0 && (
         <div className="card">
