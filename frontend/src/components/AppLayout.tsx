@@ -18,7 +18,7 @@ const menuItems: MenuItem[] = [
   { path: '/equipos', label: 'Equipos docentes', roles: ['COORDINADOR', 'ADMIN'] },
   { path: '/avisos', label: 'Avisos', roles: [] },
   { path: '/tareas', label: 'Tareas', roles: ['PROFESOR', 'COORDINADOR', 'ADMIN'] },
-  { path: '/encuentros', label: 'Encuentros', roles: ['PROFESOR', 'COORDINADOR', 'ADMIN'] },
+  { path: '/encuentros', label: 'Encuentros', roles: ['PROFESOR', 'TUTOR', 'COORDINADOR', 'ADMIN'] },
   { path: '/coloquios', label: 'Coloquios', roles: ['ALUMNO', 'PROFESOR', 'COORDINADOR', 'ADMIN'] },
   { path: '/liquidaciones', label: 'Liquidaciones', roles: ['FINANZAS', 'ADMIN'] },
   { path: '/facturas', label: 'Facturas', roles: ['FINANZAS', 'ADMIN'] },

@@ -48,7 +48,16 @@ async def get_current_user(
     return user
 
 def check_permission(permission_name: str):
-    """Modo demo: no checkea permisos, solo devuelve el usuario actual."""
+    """Verifica que el usuario tenga el permiso requerido."""
     async def _check_permission(user: User = Depends(get_current_user)):
-        return user
+        # El usuario ya viene con roles y permisos cargados via selectinload
+        for ur in user.user_roles:
+            if ur.role:
+                for rp in ur.role.role_permissions:
+                    if rp.permission and rp.permission.name == permission_name:
+                        return user
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Permiso requerido: {permission_name}",
+        )
     return _check_permission

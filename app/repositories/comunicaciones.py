@@ -65,8 +65,8 @@ class ComunicacionesRepository(BaseRepository[Comunicacion]):
         query = (
             select(
                 Comunicacion.lote_id,
-                func.min(Comunicacion.enviado_por).label("enviado_por"),
-                func.min(Comunicacion.materia_id).label("materia_id"),
+                Comunicacion.enviado_por,
+                Comunicacion.materia_id,
                 func.count().label("total"),
                 func.sum(case((Comunicacion.estado == ComunicacionEstado.PENDIENTE.value, 1), else_=0)).label("pendientes"),
                 func.sum(case((Comunicacion.estado == ComunicacionEstado.ENVIANDO.value, 1), else_=0)).label("enviando"),
@@ -76,7 +76,7 @@ class ComunicacionesRepository(BaseRepository[Comunicacion]):
                 func.max(Comunicacion.created_at).label("created_at"),
             )
             .where(*base_filters)
-            .group_by(Comunicacion.lote_id)
+            .group_by(Comunicacion.lote_id, Comunicacion.enviado_por, Comunicacion.materia_id)
             .order_by(func.max(Comunicacion.created_at).desc())
             .offset(offset)
             .limit(limit)
@@ -105,8 +105,8 @@ class ComunicacionesRepository(BaseRepository[Comunicacion]):
         query = (
             select(
                 Comunicacion.lote_id,
-                func.min(Comunicacion.enviado_por).label("enviado_por"),
-                func.min(Comunicacion.materia_id).label("materia_id"),
+                Comunicacion.enviado_por,
+                Comunicacion.materia_id,
                 func.count().label("total"),
                 func.sum(case((Comunicacion.estado == ComunicacionEstado.PENDIENTE.value, 1), else_=0)).label("pendientes"),
                 func.sum(case((Comunicacion.estado == ComunicacionEstado.ENVIANDO.value, 1), else_=0)).label("enviando"),
@@ -119,7 +119,7 @@ class ComunicacionesRepository(BaseRepository[Comunicacion]):
                 Comunicacion.lote_id == lote_id,
                 Comunicacion.tenant_id == tenant_id,
             )
-            .group_by(Comunicacion.lote_id)
+            .group_by(Comunicacion.lote_id, Comunicacion.enviado_por, Comunicacion.materia_id)
         )
         result = await self.session.execute(query)
         row = result.one_or_none()

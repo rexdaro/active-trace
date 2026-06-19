@@ -14,20 +14,26 @@ import bcrypt
 router = APIRouter(prefix="/api/v1/usuarios", tags=["usuarios"])
 
 
-@router.get("/roles")
+@router.get(
+    "/roles",
+    dependencies=[Depends(check_permission("usuarios:gestionar"))],
+)
 async def listar_roles(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(check_permission("usuarios:gestionar")),
 ):
     result = await db.execute(select(Role).order_by(Role.name))
     roles = result.scalars().all()
     return [{"id": r.id, "name": r.name} for r in roles]
 
 
-@router.get("")
+@router.get(
+    "",
+    dependencies=[Depends(check_permission("usuarios:gestionar"))],
+)
 async def listar_usuarios(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(check_permission("usuarios:gestionar")),
     estado: str = "activos",
 ):
     stmt = select(User).options(selectinload(User.user_roles).selectinload(UserRole.role))
@@ -50,11 +56,16 @@ async def listar_usuarios(
     return data
 
 
-@router.post("", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=UserRead,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(check_permission("usuarios:gestionar"))],
+)
 async def crear_usuario_admin(
     body: UserCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(check_permission("usuarios:gestionar")),
 ):
     existing = await db.execute(select(User).where(User.email == body.email))
     if existing.scalar_one_or_none():
@@ -97,11 +108,14 @@ async def crear_usuario_admin(
     return user
 
 
-@router.get("/{user_id}")
+@router.get(
+    "/{user_id}",
+    dependencies=[Depends(check_permission("usuarios:gestionar"))],
+)
 async def obtener_usuario(
     user_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(check_permission("usuarios:gestionar")),
 ):
     result = await db.execute(
         select(User)
@@ -126,12 +140,15 @@ async def obtener_usuario(
     }
 
 
-@router.put("/{user_id}")
+@router.put(
+    "/{user_id}",
+    dependencies=[Depends(check_permission("usuarios:gestionar"))],
+)
 async def actualizar_usuario(
     user_id: uuid.UUID,
     body: dict,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(check_permission("usuarios:gestionar")),
 ):
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
@@ -151,11 +168,14 @@ async def actualizar_usuario(
     return {"ok": True, "mensaje": "Usuario actualizado correctamente"}
 
 
-@router.put("/{user_id}/toggle-activo")
+@router.put(
+    "/{user_id}/toggle-activo",
+    dependencies=[Depends(check_permission("usuarios:gestionar"))],
+)
 async def toggle_activo(
     user_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(check_permission("usuarios:gestionar")),
 ):
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
@@ -166,12 +186,15 @@ async def toggle_activo(
     return {"ok": True, "activo": user.activo, "mensaje": f"Usuario {'activado' if user.activo else 'desactivado'} correctamente"}
 
 
-@router.post("/{user_id}/roles")
+@router.post(
+    "/{user_id}/roles",
+    dependencies=[Depends(check_permission("usuarios:gestionar"))],
+)
 async def asignar_rol(
     user_id: uuid.UUID,
     body: dict,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(check_permission("usuarios:gestionar")),
 ):
     rol_nombre = body.get("rol")
     if not rol_nombre:
@@ -202,12 +225,15 @@ async def asignar_rol(
     return {"ok": True, "mensaje": f"Rol '{rol_nombre}' asignado correctamente"}
 
 
-@router.delete("/{user_id}/roles/{role_id}")
+@router.delete(
+    "/{user_id}/roles/{role_id}",
+    dependencies=[Depends(check_permission("usuarios:gestionar"))],
+)
 async def remover_rol(
     user_id: uuid.UUID,
     role_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(check_permission("usuarios:gestionar")),
 ):
     result = await db.execute(
         select(UserRole).where(

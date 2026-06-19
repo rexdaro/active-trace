@@ -42,6 +42,9 @@ body {
 .sidebar {
   width: 260px;
   height: 100vh;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
   background: var(--sidebar-bg);
   color: var(--sidebar-text);
   display: flex;
@@ -139,7 +142,7 @@ body {
 .main-content {
   flex: 1;
   padding: 2rem;
-  overflow-y: auto;
+  min-height: 100vh;
   min-width: 0;
 }
 

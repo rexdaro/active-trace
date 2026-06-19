@@ -19,6 +19,7 @@ const ALL_ACTIONS: QuickAction[] = [
   { path: '/calificaciones', label: 'Importar calificaciones', variant: 'btn-primary', roles: ['PROFESOR', 'COORDINADOR', 'ADMIN'] },
   { path: '/atrasados', label: 'Ver atrasados', variant: 'btn-ghost', roles: ['PROFESOR', 'TUTOR', 'COORDINADOR', 'ADMIN'] },
   { path: '/comunicaciones', label: 'Enviar comunicación', variant: 'btn-ghost', roles: ['PROFESOR', 'COORDINADOR', 'ADMIN'] },
+  { path: '/encuentros', label: 'Gestionar encuentros', variant: 'btn-ghost', roles: ['PROFESOR', 'TUTOR', 'COORDINADOR', 'ADMIN'] },
   { path: '/avisos', label: 'Ver avisos', variant: 'btn-ghost', roles: [] },
   { path: '/coloquios', label: 'Reservar coloquio', variant: 'btn-ghost', roles: ['ALUMNO'] },
   { path: '/facturas', label: 'Mis facturas', variant: 'btn-ghost', roles: ['FINANZAS', 'ADMIN'] },

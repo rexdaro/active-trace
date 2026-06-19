@@ -44,7 +44,7 @@ class AvisoRepository:
         materia_ids: list[uuid.UUID] | None = None,
         cohorte_ids: list[uuid.UUID] | None = None,
     ) -> list[Aviso]:
-        now = datetime.now(timezone.utc)
+        now = datetime.utcnow()
         conditions = [
             Aviso.tenant_id == tenant_id,
             Aviso.activo == True,
@@ -110,7 +110,7 @@ class AvisoRepository:
         if params.activo is not None:
             conditions.append(Aviso.activo == params.activo)
         if not params.incluir_vencidos:
-            now = datetime.now(timezone.utc)
+            now = datetime.utcnow()
             conditions.append(Aviso.fin_en >= now)
 
         count_query = select(func.count()).select_from(Aviso).where(*conditions)
@@ -136,7 +136,7 @@ class AvisoRepository:
         materia_ids: list[uuid.UUID] | None = None,
         cohorte_ids: list[uuid.UUID] | None = None,
     ) -> int:
-        now = datetime.now(timezone.utc)
+        now = datetime.utcnow()
         conditions = [
             Aviso.tenant_id == tenant_id,
             Aviso.activo == True,
@@ -184,7 +184,7 @@ class AvisoRepository:
             aviso_id=aviso_id,
             usuario_id=usuario_id,
             tenant_id=tenant_id,
-            confirmado_at=datetime.now(timezone.utc),
+            confirmado_at=datetime.utcnow(),
         )
         self.session.add(ack)
         return ack
