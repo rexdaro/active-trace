@@ -67,9 +67,13 @@ export default function Avisos() {
   const canManage = user?.roles?.some((r) => r === 'COORDINADOR' || r === 'ADMIN');
 
   useEffect(() => {
-    getCurrentUser().then(setUser).catch(() => {});
-    api
-      .get('/api/v1/avisos')
+    getCurrentUser()
+      .then((u) => {
+        setUser(u);
+        const canManage = u?.roles?.some((r) => r === 'COORDINADOR' || r === 'ADMIN');
+        const url = canManage ? '/api/v1/avisos' : '/api/v1/avisos/mis-avisos';
+        return api.get(url);
+      })
       .then((res) => setAvisos(Array.isArray(res.data) ? res.data : []))
       .catch(() => setError('Error al cargar avisos'))
       .finally(() => setLoading(false));

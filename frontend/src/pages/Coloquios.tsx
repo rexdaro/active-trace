@@ -51,18 +51,22 @@ export default function Coloquios() {
   const [loadingMetricas, setLoadingMetricas] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    getCurrentUser().then(setUser).catch(() => {});
-    Promise.all([
-      api.get('/api/v1/coloquios'),
-      api.get('/api/materias'),
-      api.get('/api/cohortes'),
-    ]).then(([colRes, matRes, cohRes]) => {
-      const colData = colRes.data;
-      setConvocatorias(Array.isArray(colData) ? colData : (colData?.items ?? []));
-      setMaterias(Array.isArray(matRes.data) ? matRes.data : []);
-      setCohortes(Array.isArray(cohRes.data) ? cohRes.data : []);
-    }).catch(() => setError('Error al cargar datos'))
-    .finally(() => setLoading(false));
+    getCurrentUser()
+      .then((u) => {
+        setUser(u);
+        return Promise.all([
+          api.get('/api/v1/coloquios'),
+          api.get('/api/materias'),
+          api.get('/api/cohortes'),
+        ]);
+      })
+      .then(([colRes, matRes, cohRes]) => {
+        const colData = colRes.data;
+        setConvocatorias(Array.isArray(colData) ? colData : (colData?.items ?? []));
+        setMaterias(Array.isArray(matRes.data) ? matRes.data : []);
+        setCohortes(Array.isArray(cohRes.data) ? cohRes.data : []);
+      }).catch(() => setError('Error al cargar datos'))
+      .finally(() => setLoading(false));
   }, []);
 
   function resetForm() {

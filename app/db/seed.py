@@ -17,7 +17,7 @@ PERMISSIONS = {
     "guardias:ver": ["COORDINADOR", "ADMIN"],
     "coloquios:gestionar": ["COORDINADOR", "ADMIN"],
     "coloquios:reservar": ["ALUMNO"],
-    "coloquios:ver": ["COORDINADOR", "ADMIN", "PROFESOR"],
+    "coloquios:ver": ["COORDINADOR", "ADMIN", "PROFESOR", "ALUMNO"],
     "avisos:publicar": ["COORDINADOR", "ADMIN"],
     "avisos:ver": ["ALUMNO", "TUTOR", "PROFESOR", "COORDINADOR", "NEXO", "ADMIN", "FINANZAS"],
     "avisos:confirmar": ["ALUMNO", "TUTOR", "PROFESOR", "COORDINADOR", "ADMIN", "FINANZAS"],
