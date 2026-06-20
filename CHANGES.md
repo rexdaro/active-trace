@@ -24,6 +24,7 @@ C-01 foundation-setup (infra, Docker, FastAPI skel, DB inicial, OTel)
     └── C-03 auth-jwt-2fa (login, refresh rotation, recuperación, sesión)
         └── C-04 rbac-permisos-finos (roles, permisos modulo:accion, matriz, guard)
             ├── C-05 audit-log (E-AUD append-only, middleware, impersonación)
+            │   └── C-28 fix-auditoria-middleware (no loguear headers en detalle)
             ├── C-06 estructura-academica (Carrera, Cohorte, Materia, ABM)
             │   ├── C-07 usuarios-y-asignaciones (Usuario PII cifrada, Asignacion, vigencia)
             │   │   ├── C-08 equipos-docentes (mis-equipos, masiva, clonar, exportar)
@@ -37,6 +38,7 @@ C-01 foundation-setup (infra, Docker, FastAPI skel, DB inicial, OTel)
             │   │   ├── C-16 tareas-internas (Tarea, ComentarioTarea, workflow)
             │   │   ├── C-17 programas-y-fechas-academicas (ProgramaMateria, FechaAcademica)
             │   │   ├── C-18 liquidaciones-y-honorarios (SalarioBase/Plus, Liquidacion, Factura)
+            │   │   │   └── C-29 fix-salarios-facturas-frontend (corregir nombres de campo)
             │   │   └── C-25 users-usuarios-unificacion (User unificado, admin crea usuarios)
             │   │       └── C-26 login-moderno-y-registro (login redesign, registro público)
             │   ├── C-19 panel-auditoria-metricas (dashboards de uso, F9.1)
@@ -44,7 +46,9 @@ C-01 foundation-setup (infra, Docker, FastAPI skel, DB inicial, OTel)
             │   └── C-21 frontend-shell-y-auth (SPA shell, login, guard, cliente HTTP)
             │       ├── C-22 frontend-academico-docente (importación, atrasados, comunicaciones)
             │       ├── C-23 frontend-coordinacion (equipos, avisos, tareas, monitores)
-            │       └── C-24 frontend-finanzas-y-admin (liquidaciones, facturas, estructura, auditoría)
+            │       ├── C-24 frontend-finanzas-y-admin (liquidaciones, facturas, estructura, auditoría)
+            │       └── C-27 frontend-route-guards (RoleRoute por rol en frontend)
+
 ```
 
 ### Paralelismo por fase
@@ -526,13 +530,15 @@ C-01 → C-02 → C-03 → C-04 → C-06 → C-07 → C-09 → C-10 → C-11 →
 
 ## FASE 6 — Demo y UX (presentación)
 
-> Cambios orientados a tener una demo presentable: unificación del modelo de usuarios para simplificar, registro público, y login con diseño moderno.
+> ✅ COMPLETADA. Cambios orientados a tener una demo presentable: unificación del modelo de usuarios para simplificar, registro público, y login con diseño moderno.
+
+
 
 ### [C-25] `users-usuarios-unificacion`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` hecho
 - **Scope**:
   - Unificar las tablas `users` (auth) y `usuarios` (fiscal/PII) en una sola entidad con todos los campos: email, password, DNI, CUIL, CBU, nombre, datos fiscales/bancarios, 2FA.
-  - Migrar datos existentes de ambas tablas a la unificada. Eliminar tablas viejas.
+  - Migrar datos existentes de ambas tablas a la unificada.
   - Refactorizar todos los routers que usaban `User` o `Usuario` para que apunten a la nueva entidad unificada.
   - Agregar `POST /api/v1/usuarios` (admin crea usuario con cualquier rol) y `PUT /api/v1/usuarios/{id}/roles` (asignar rol).
   - Tests: creación con/sin rol, migración de datos legacy.
@@ -543,7 +549,7 @@ C-01 → C-02 → C-03 → C-04 → C-06 → C-07 → C-09 → C-10 → C-11 →
   - `knowledge-base/03_actores_y_roles.md` §2 (roles), §5 (vigencia)
 
 ### [C-26] `login-moderno-y-registro`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` hecho
 - **Scope**:
   - Rediseño completo de la pantalla de login: diseño moderno, centrado, con branding, animaciones suaves, placeholders claros, mensajes de error estilizados.
   - Formulario de registro público: email + contraseña + confirmar contraseña. Crea usuario con rol `ALUMNO` automáticamente.
@@ -556,19 +562,45 @@ C-01 → C-02 → C-03 → C-04 → C-06 → C-07 → C-09 → C-10 → C-11 →
   - `knowledge-base/08_arquitectura_propuesta.md` §2 (frontend)
   - `knowledge-base/07_flujos_principales.md` FL-01 (auth)
 
+### [C-27] `frontend-route-guards` *(nuevo)*
+- **Estado**: `[x]` hecho
+- **Scope**:
+  - Componente `RoleRoute` para proteger rutas del frontend por rol (ALUMNO, PROFESOR, COORDINADOR, ADMIN, FINANZAS).
+  - Dashboard filtra acciones rápidas según el rol del usuario autenticado.
+  - Alineación con la sidebar (AppLayout) que ya filtraba items por rol.
+  - Sin este cambio, cualquier usuario autenticado podía navegar a cualquier ruta aunque no tuviera permiso.
+- **Dependencias**: `C-21`
+- **Governance**: BAJO
+
+### [C-28] `fix-auditoria-middleware` *(nuevo)*
+- **Estado**: `[x]` hecho
+- **Scope**:
+  - El middleware de auditoría logueaba los headers HTTP completos (incluyendo tokens Bearer) como `detalle` en cada request.
+  - Riesgo de seguridad: tokens almacenados en DB. Saturación del log con datos irrelevantes.
+  - Fix: middleware guarda `detalle: {}` vacío. El detalle con datos de negocio lo ponen los servicios explícitamente.
+- **Dependencias**: `C-05`
+- **Governance**: CRITICO
+
+### [C-29] `fix-salarios-facturas-frontend` *(nuevo)*
+- **Estado**: `[x]` hecho
+- **Scope**:
+  - Salarios: frontend enviaba `vigencia_desde`/`vigencia_hasta` pero el schema espera `desde`/`hasta`. Plus salarial faltaba campo `descripcion`.
+  - Facturas: faltaban campos `fecha` y `monto` en modelo, schema y frontend.
+  - Fix: corregir nombres de campo y agregar campos faltantes.
+- **Dependencias**: `C-18`,
+- **Governance**: BAJO
+
 ---
 
 ## Resumen
 
 | Métrica | Valor |
 |---------|-------|
-| Total de changes | 26 |
-| Fases | 7 (FASE 0 a FASE 6) |
+| Total de changes | 29 |
+| Fases | 7 (FASE 0 a FASE 6) + fixes |
 | Camino crítico | 12 changes (`C-01 → C-02 → C-03 → C-04 → C-06 → C-07 → C-09 → C-10 → C-11 → C-12 → C-25 → C-26`) |
 | Gates de paralelismo | 11 (GATE 0 a GATE 10) |
-| Changes CRITICO (governance) | 7 (C-02, C-03, C-04, C-05, C-07, C-18, C-25) |
+| Changes CRITICO (governance) | 8 (C-02, C-03, C-04, C-05, C-07, C-18, C-25, C-28) |
 | Primer fork | GATE 4 (tras C-04, seguridad lista) |
 
-**Primer change recomendado**: `C-01` (foundation-setup).
-
-Para arrancar: `/opsx:propose C-01-foundation-setup`
+**Estado actual**: 29/29 changes completados ✅ — proyecto funcional, todos los módulos implementados.

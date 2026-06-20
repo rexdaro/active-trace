@@ -7,9 +7,9 @@ from app.models.rbac import Role, Permission, RolePermission
 ROLES = ["ALUMNO", "TUTOR", "PROFESOR", "COORDINADOR", "NEXO", "ADMIN", "FINANZAS"]
 
 PERMISSIONS = {
-    "atrasados:ver": ["PROFESOR", "TUTOR", "COORDINADOR", "ADMIN"],
+    "atrasados:ver": ["PROFESOR", "TUTOR", "COORDINADOR", "ADMIN", "FINANZAS"],
     "atrasados:export": ["PROFESOR", "COORDINADOR", "ADMIN"],
-    "comunicacion:enviar": ["PROFESOR", "COORDINADOR", "ADMIN"],
+    "comunicacion:enviar": ["PROFESOR", "COORDINADOR", "ADMIN", "FINANZAS"],
     "comunicacion:aprobar": ["COORDINADOR", "ADMIN"],
     "encuentros:gestionar": ["PROFESOR", "COORDINADOR", "ADMIN"],
     "encuentros:ver": ["COORDINADOR", "ADMIN"],
@@ -28,6 +28,7 @@ PERMISSIONS = {
     "liquidaciones:ver": ["FINANZAS", "ADMIN"],
     "liquidaciones:configurar-salarios": ["FINANZAS"],
     "liquidaciones:cerrar": ["FINANZAS"],
+    "usuarios:gestionar": ["ADMIN", "COORDINADOR", "FINANZAS"],
 }
 
 
@@ -42,7 +43,6 @@ async def _ensure_permissions(session: AsyncSession):
             await session.flush()
         else:
             print(f"Permission {perm_name} already exists.")
-            continue
 
         for role_name in roles:
             role_result = await session.execute(select(Role).filter(Role.name == role_name))
